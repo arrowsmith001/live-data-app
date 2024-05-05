@@ -1,4 +1,5 @@
 import json
+import time
 import websocket
 import threading
 from math import floor
@@ -6,12 +7,16 @@ from datetime import UTC, datetime, timezone
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import asc
+from flask_sock import Sock
+
+port = 5000
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "postgresql://postgres:password@localhost/robotdatadb"
 )
 db = SQLAlchemy(app)
+sock = Sock(app)
 
 
 class Event(db.Model):
@@ -46,15 +51,28 @@ def format_event(event: Event):
     }
 
 
-ws = None
+ws_server = None
+ws_client = None
 
 
 @app.route("/connect")
-def connect():
-    global ws
-    ws = websocket.WebSocket()
-    ws.connect("ws://192.168.0.89:8080/ws")
+def connect_to_server():
+    global ws_server
+    ws_server = websocket.WebSocket()
+    ws_server.connect("ws://192.168.0.89:8080/ws")
     thread = threading.Thread(target=read_data)
+    thread.start()
+    return ""
+
+
+@sock.route("/ws")
+def connect_to_client(ws):
+    global ws_client
+    while True:
+        ws.send(json.dumps(read_events()))
+        time.sleep(0.25)
+    ws_client = ws
+    thread = threading.Thread(target=send_data)
     thread.start()
     return ""
 
@@ -67,7 +85,6 @@ def create_event():
 
 
 def push_event(data, received_at):
-    print(data)
     event = Event(data, received_at)
     db.session.add(event)
     db.session.commit()
@@ -113,7 +130,7 @@ def read_data():
     with app.app_context():
         global seconds
         while True:
-            data = ws.recv()
+            data = ws_server.recv()
             received_at = get_timestamp()
             push_event(data, received_at)
 
@@ -123,6 +140,13 @@ def read_data():
                 seconds = seconds_now
 
 
+def send_data():
+    with app.app_context():
+        while True:
+            ws_client.send(json.dumps(read_events()))
+            time.sleep(0.25)
+
+
 if __name__ == "__main__":
     websocket.enableTrace(True)
-    app.run(port=5000, debug=True)
+    app.run(port=port, debug=True)
