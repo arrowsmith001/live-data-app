@@ -55,22 +55,43 @@ ws_server = None
 ws_client = None
 
 
-@app.route("/connect")
+@app.route("/connect", methods=["POST"])
 def connect_to_server():
     global ws_server
+    data = request.get_json()
+    ip_address = data.get("ip")
+    endpoint = data.get("endpoint")
+
+    if not ip_address:
+        return "IP address is required", 400
+
+    if endpoint:
+        ws_url = f"ws://{ip_address}/{endpoint}"
+    else:
+        ws_url = f"ws://{ip_address}"
+
     ws_server = websocket.WebSocket()
-    ws_server.connect("ws://192.168.0.89:8080/ws")
+    ws_server.connect(ws_url)
+
     thread = threading.Thread(target=read_data)
     thread.start()
+
+    return ""
+
+
+@app.route("/disconnect", methods=["POST"])
+def disconnect_from_server():
+    global ws_server
+    ws_server.close()
     return ""
 
 
 @sock.route("/ws")
 def connect_to_client(ws):
     global ws_client
-    while True:
-        ws.send(json.dumps(read_events()))
-        time.sleep(0.25)
+    # while True:
+    #     ws.send(json.dumps(read_latest_event()))
+    #     time.sleep(0.1)
     ws_client = ws
     thread = threading.Thread(target=send_data)
     thread.start()
@@ -84,10 +105,15 @@ def create_event():
     return push_event(data, received_at)
 
 
+latest_event = None
+
+
 def push_event(data, received_at):
     event = Event(data, received_at)
     db.session.add(event)
     db.session.commit()
+    if latest_event.received_at < event.received_at:
+        latest_event = event
     return format_event(event)
 
 
@@ -95,6 +121,10 @@ def push_event(data, received_at):
 def read_events():
     events = Event.query.order_by(asc(Event.received_at)).all()
     return json.dumps([format_event(event) for event in events])
+
+
+def read_latest_event():
+    return json.dumps([format_event(latest_event)])
 
 
 @app.route("/events/<int:id>", methods=["GET"])
@@ -143,8 +173,8 @@ def read_data():
 def send_data():
     with app.app_context():
         while True:
-            ws_client.send(json.dumps(read_events()))
-            time.sleep(0.25)
+            ws_client.send(json.dumps(latest_event))
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":
