@@ -1,2 +1,5 @@
-backend/package-lock.json
+backend/Pipfile.lock
+backend/__pycache__
+
+frontend/package-lock.json
 frontend/node_modules
