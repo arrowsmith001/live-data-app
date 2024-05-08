@@ -5,6 +5,18 @@ export class WebSocketConfig {
     ipAddress!: string;
     port!: number;
     endpoint!: string;
+
+    toDisplayString(): string {
+        return `${this.ipAddress}:${this.port}/${this.endpoint}`;
+    }
+
+    toFullAddress(): string {
+        return `ws://${this.ipAddress}:${this.port}/${this.endpoint}`;
+    }
+
+    constructor(init?: Partial<WebSocketConfig>) {
+        Object.assign(this, init);
+    }
 }
 
 class WebSocketListenerProps {

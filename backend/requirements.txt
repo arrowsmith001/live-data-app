@@ -1,0 +1,7 @@
+Flask==3.0.0
+python-dotenv==0.19.1
+websocket-client==1.8.0
+flask-sqlalchemy==3.1.1
+sqlalchemy==2.0.30
+flask-sock==0.7.0
+psycopg2==2.9.9
