@@ -19,7 +19,7 @@ function DataStreamMenuItem(props: DataStreamMenuItemProps) {
     return (
         <div>
             <div>{name}</div>
-            <div>{dataStreamConfig.webSocketConfig.ipAddress}</div>
+            <div>{dataStreamConfig.webSocketConfig.ip}</div>
             <div>{dataStreamConfig.webSocketConfig.port}</div>
         </div>
     );

@@ -2,16 +2,16 @@ import { useContext } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 export class WebSocketConfig {
-    ipAddress!: string;
+    ip!: string;
     port!: number;
     endpoint!: string;
 
     toDisplayString(): string {
-        return `${this.ipAddress}:${this.port}/${this.endpoint}`;
+        return `${this.ip}:${this.port}/${this.endpoint}`;
     }
 
     toFullAddress(): string {
-        return `ws://${this.ipAddress}:${this.port}/${this.endpoint}`;
+        return `ws://${this.ip}:${this.port}/${this.endpoint}`;
     }
 
     constructor(init?: Partial<WebSocketConfig>) {
@@ -26,7 +26,7 @@ class WebSocketListenerProps {
 function WebSocketListener({ wsConfig }: WebSocketListenerProps) {
 
     const { sendMessage, sendJsonMessage, lastMessage, lastJsonMessage, readyState, getWebSocket }
-        = useWebSocket("ws://" + wsConfig.ipAddress + ":" + wsConfig.port + '/' + wsConfig.endpoint, {}, true);
+        = useWebSocket("ws://" + wsConfig.ip + ":" + wsConfig.port + '/' + wsConfig.endpoint, {}, true);
 
     const connectionStatus = {
         [ReadyState.CONNECTING]: 'Connecting',

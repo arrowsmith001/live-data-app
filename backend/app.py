@@ -1,39 +1,24 @@
 import json
 import sys
 import time
+import uuid
 import websocket
 import threading
 from math import floor
 from datetime import UTC, datetime, timezone
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import (
-    asc,
-    text,
-)
+from sqlalchemy import asc, text, Table
 from flask_sock import Sock
 from flask.cli import FlaskGroup
+from flask_cors import CORS, cross_origin
 
-time.sleep(5)
+# time.sleep(5)
 
 port = 5000
-# query = text(
-#     "INSERT INTO public.event (data, received_at, received_from) VALUES ('12,223,22254', 1.01, '192.0.0.0');"
-# )
-# conn.execute(query)
-# conn.commit()
 
 
-app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "postgresql://postgres:password@localhost/robotdatadb"
-)
-db = SQLAlchemy(app)
-sock = Sock(app)
-cli = FlaskGroup(app)
-
-# List to store websocket threads
-websocket_threads = []
+db = SQLAlchemy()
 
 
 class Event(db.Model):
@@ -51,6 +36,29 @@ class Event(db.Model):
         self.data = data
         self.received_at = received_at
         self.received_from = received_from
+
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    # "postgresql://postgres:password@db:5432/robotdatadb"
+    "postgresql://postgres:password@localhost/robotdatadb"
+)
+
+# Database setup
+with app.app_context():
+    db.init_app(app)
+    Event.__table__.drop(db.engine)
+    db.session.commit()
+    db.create_all()  # This creates on the table schema
+    db.session.commit()
+
+
+sock = Sock(app)
+cli = FlaskGroup(app)
+
+
+# List to store websocket threads
+websocket_threads = []
 
 
 def get_timestamp():
@@ -85,7 +93,8 @@ def test():
     return "Hello, World!"
 
 
-@app.route("/connect")
+@app.route("/connect", methods=["POST"])
+@cross_origin()
 def connect_to_server():
     global websocket_servers, connected_clients
     data = request.get_json()
@@ -109,7 +118,7 @@ def connect_to_server():
     ws_server.connect(ws_url)
 
     websocket_servers[ws_server] = ws_url
-    connected_clients[ws_server] = thread
+    # connected_clients[ws_server] = thread
 
     thread = threading.Thread(target=read_data, args=(ws_server,))
     thread.start()
@@ -118,6 +127,7 @@ def connect_to_server():
 
 
 @app.route("/disconnect")
+@cross_origin()
 def disconnect_from_server():
     global websocket_servers, connected_clients
     data = request.get_json()
@@ -154,87 +164,116 @@ expiry_seconds = 10
 def read_data(ws_server):
     try:
         with app.app_context():
-            global seconds
+            global seconds, websocket_servers, ws_clients
             ws_url = websocket_servers[ws_server]
-            print("Connected to " + str(ws_server))
+            # print("Connected to " + str(ws_server))
             while ws_server:
                 try:
                     data = ws_server.recv()
                 except ConnectionAbortedError:
-                    print("Connection closed")
+                    # print("Connection closed")
                     break
                 received_at = get_timestamp()
                 event = push_event(data, received_at, ws_url)
-                print("read_data: " + str(event) + " received from " + ws_url)
+                print("DATA_RECEIVED_AT: " + str(received_at))
 
                 # if a client has been registered as interested in the source of this data...
-                for ws_client in ws_clients:
-                    if ws_clients[ws_client].get("ip") == ws_url:
-                        ws_client.send(json.dumps(event))
+                # print(ws_clients)
+                for id in ws_clients.keys():
+                    try:
+                        url = (
+                            "ws://"
+                            + ws_clients[id]["params"]["ip"]
+                            + ":"
+                            + str(ws_clients[id]["params"]["port"])
+                            + "/"
+                        ) + ws_clients[id]["params"]["endpoint"]
+
+                        # print("Checking if " + url + " matches " + ws_url)
+
+                        if url == ws_url:
+                            # print("Sending data to client " + id + " from " + ws_url)
+                            ws_clients[id]["data"].append(event["data"])
+                            # print("Data sent to client " + id + " from " + ws_url)
+                    except:
+                        pass
 
     except Exception as e:
         print("Connection closed with controlled exception: " + str(e))
         del websocket_servers[ws_server]
 
 
-def send_data(ws_client):
+def manage_client(ws_client):
     with app.app_context():
         while True:
-            ws_client.ping()
+            # ws_client.ping()
             time.sleep(1)
 
 
 @sock.route("/ws/connect")
+@cross_origin()
 def connect_to_client(ws_client):
     global ws_clients
     # while True:
     #     ws.send(json.dumps(read_latest_event()))
     #     time.sleep(0.1)
 
-    if ws_client in ws_clients:
+    client_addr = ws_client.environ.get("REMOTE_ADDR")
+    # client_port = ws_client.environ.get("REMOTE_PORT")
+    ws_client_id = client_addr  # + ":" + str(client_port)
+
+    if ws_client_id in ws_clients.keys():
         return "Client already connected", 400
 
-    ws_clients[ws_client] = ws_client
+    # generate a GUID
 
-    # Get the parameters from the client
-    ip = request.args.get("ip")
-    port = request.args.get("port")
-    endpoint = request.args.get("endpoint")
-
-    parameters = {"ip": ip, "port": port, "endpoint": endpoint}
-    print("Client connected: " + str(parameters))
+    print("Client connected: " + ws_client_id)
 
     # Store the parameters for the client
-    ws_clients[ws_client] = parameters
+    ws_clients[ws_client_id] = {"client": ws_client, "params": {}, "data": []}
 
-    ws_client.send(json.dumps("HELLO FROM SERVER"))
-
-    # thread = threading.Thread(target=send_data, args=(ws_client,))
+    # thread = threading.Thread(target=manage_client, args=(ws_client,))
     # thread.start()
+
     while True:
-        ws_client.send(time.time())
-        time.sleep(5)
+        try:
+            if len(ws_clients[ws_client_id]["data"]) > 0:
+                ws_client.send(json.dumps(ws_clients[ws_client_id]["data"].pop(0)))
+        except ConnectionAbortedError:
+            print("Connection closed")
+            break
+
     return ""
 
 
-@sock.route("/ws/update")
-def update_from_client(ws_client):
+@app.route("/update", methods=["POST"])
+@cross_origin()
+def update_from_client():
     global ws_clients
     # while True:
     #     ws.send(json.dumps(read_latest_event()))
     #     time.sleep(0.1)
 
+    # get address and port from request
+    ip_address = request.remote_addr
+    # port = request.environ.get("REMOTE_PORT")
+    id = ip_address
+
+    print("Client updating: " + id)
+
+    data = request.get_json()
+    params = data
+
+    for id in ws_clients.keys():
+        print(id)
+
     # if client unreocgnized, abort
-    if ws_client not in ws_clients:
-        return "Client not recognized", 400
+    # update parameters for the client
+    ws_clients[id]["params"] = params
 
-    # Get the parameters from the client
-    parameters = request.get("ip")
+    print("After update: " + str(ws_clients))
 
-    # Store the parameters for the client
-    ws_clients[ws_client] = parameters
-
-    return ""
+    return "OK"
 
 
 @app.route("/event", methods=["POST"])

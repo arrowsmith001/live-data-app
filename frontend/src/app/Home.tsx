@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import WebSocketListener, { WebSocketConfig } from '../network/WebSocketListener';
 import DataStreamMenuItem, { DataStreamConfig } from './DataStreamMenuItem';
-import { Container, Drawer, AppBar, Toolbar, Typography, IconButton, ListItem, List, ListItemText, Icon, Divider, ListItemIcon, Theme } from '@mui/material';
+import { Container, Drawer, AppBar, Toolbar, Typography, IconButton, ListItem, List, ListItemText, Icon, Divider, ListItemIcon, Theme, Button } from '@mui/material';
 import { LineChart } from '@mui/x-charts';
 import React from 'react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -13,6 +13,8 @@ import { Add, ChevronLeft, NetworkCheck, Settings, Title } from '@material-ui/ic
 import ConnectionStatusDot from './ConnectionStatusDot';
 import { useAppStyles } from '../styles/AppStyles';
 import MainTop from './MainTop';
+import { useWebSocketHook } from '../network/WebSocketHook';
+import { config } from 'process';
 
 
 const drawerWidth = 400;
@@ -52,7 +54,7 @@ function Home() {
         {
             name: 'Robot 1',
             webSocketConfig: new WebSocketConfig({
-                ipAddress: '192.168.0.89',
+                ip: '192.168.0.89',
                 port: 8080,
                 endpoint: 'ws1'
             })
@@ -60,7 +62,7 @@ function Home() {
         {
             name: 'Robot 2',
             webSocketConfig: new WebSocketConfig({
-                ipAddress: '192.168.0.89',
+                ip: '192.168.0.89',
                 port: 8080,
                 endpoint: 'ws2'
             })
@@ -69,22 +71,41 @@ function Home() {
 
     const [wsConfig, setWsConfig] = useState<WebSocketConfig | null>(null);
 
-    // useWebsocket
-    const { sendMessage, sendJsonMessage, lastMessage, lastJsonMessage, readyState, getWebSocket } = useWebSocket(WS_URL + "/connect" + "?ip=192.168.0.89&port=8080&endpoint=ws1");
+    const { messages, readyState, error } = useWebSocketHook(new WebSocketConfig({ ip: 'localhost', port: 5000, endpoint: 'ws/connect' }), (message) => { console.log(message); });
 
+    async function update(wsConfig: WebSocketConfig): Promise<void> {
+        const wsUrl = `http://localhost:5000/update`;
+        await axios.post(`${wsUrl}`,
+            {
+                ...wsConfig,
 
-    function connect(ipAddress: string, port: number, endpoint: string): void {
-        const wsUrl = `ws://${ipAddress}:${port}/${endpoint}`;
-        console.log(`Connecting to ${wsUrl}`);
-
-        setWsConfig(new WebSocketConfig({
-            ipAddress,
-            port,
-            endpoint
-        }));
-
-        //setWsConfig([...wsConfig, { ipAddress, port, endpoint }]);
+            }, {
+            headers: {}
+        });
     }
+
+    async function connect(wsConfig: WebSocketConfig): Promise<void> {
+        const wsUrl = `http://localhost:5000/connect`;
+        await axios.post(`${wsUrl}`,
+            {
+                ...wsConfig
+
+            }, {
+            headers: {
+            }
+        });
+    }
+
+    // console.log(`Connecting to ${wsUrl}`);
+
+    // setWsConfig(new WebSocketConfig({
+    //     ipAddress,
+    //     port,
+    //     endpoint
+    // }));
+
+    //setWsConfig([...wsConfig, { ipAddress, port, endpoint }]);
+
 
     function disconnect(index: number): void {
         // const newWsConfig = [...wsConfig];
@@ -135,12 +156,19 @@ function Home() {
                     {dataStreams.map((dataStream, index) => {
                         const wsConfig = dataStream.webSocketConfig;
 
-                        return <ListItem button onClick={() => connect(wsConfig.ipAddress, wsConfig.port, wsConfig.endpoint)} key={index}>
-                            <ConnectionStatusDot wsConfig={wsConfig} />
-                            <ListItemText primary={dataStream.name} secondary={dataStream.webSocketConfig.toDisplayString()} />
-                            <Settings></Settings>
-                            <NetworkCheck></NetworkCheck>
-                        </ListItem>
+                        return (
+                            <ListItem button onClick={() => update(wsConfig)} key={index}>
+                                <ConnectionStatusDot wsConfig={wsConfig} />
+                                <ListItemText primary={dataStream.name} secondary={dataStream.webSocketConfig.toDisplayString()} />
+                                <Settings></Settings>
+                                {/* connect icon button */}
+                                <Button onClick={(event) => {
+                                    event.stopPropagation();
+                                    connect(wsConfig);
+                                }}>CONNECT</Button>
+                                <NetworkCheck></NetworkCheck>
+                            </ListItem>
+                        );
                     })}
                 </List>
                 {/* divider */}
@@ -162,18 +190,45 @@ function Home() {
             >
                 <Toolbar />
                 <Typography paragraph>
-                    ${lastMessage ? lastMessage.data : '...'}
+                    ${messages?.length ?? '...'}
                 </Typography>
-                {wsConfig && <WebSocketListener wsConfig={wsConfig} />}
+                {/* {wsConfig && <WebSocketListener wsConfig={wsConfig} />} */}
+                {messages && <div>{messages.length}</div>}
+                {error && <div>Error: {error}</div>}
                 <LineChart
                     width={600}
                     height={300}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    series={[{ data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]} // placeholder data
+                    xAxis={[{
+                        data: messages?.map(m => {
+                            return Number.parseFloat(m.split(' ')[0]);
+                        })
+                    }]}
+                    series={[{
+                        data: messages?.map(m => {
+                            return Number.parseFloat(m.split(' ')[1]);
+                        })
+                    }]} // placeholder data
                 >
                 </LineChart>
-            </main>
-        </div>
+                <LineChart
+                    width={600}
+                    height={300}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    xAxis={[{
+                        data: messages?.map(m => {
+                            return Number.parseFloat(m.split(' ')[0]);
+                        })
+                    }]}
+                    series={[{
+                        data: messages?.map(m => {
+                            return Number.parseFloat(m.split(' ')[2]);
+                        })
+                    }]} // placeholder data
+                >
+                </LineChart>
+            </main >
+        </div >
     );
 
     return <div>
