@@ -21,6 +21,11 @@ port = 5000
 db = SQLAlchemy()
 
 
+def log(msg):
+    print(msg)
+    return
+
+
 class Event(db.Model):
     __tablename__ = "event"
 
@@ -43,6 +48,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
     # "postgresql://postgres:password@db:5432/robotdatadb"
     "postgresql://postgres:password@localhost/robotdatadb"
 )
+app.config["CORS_HEADERS"] = "Access-Control-Allow-Origin"
+cors = CORS(app)
 
 # Database setup
 with app.app_context():
@@ -81,11 +88,10 @@ def format_event(event: Event):
     }
 
 
-ws_clients = {}
-websocket_servers = {}
-
+ws_servers = {}
 
 connected_clients = {}
+ws_client_prefs = {}
 
 
 @app.route("/")
@@ -93,14 +99,20 @@ def test():
     return "Hello, World!"
 
 
-@app.route("/connect", methods=["POST"])
+# Connect to a server emitting data
+@app.route("/add_connection", methods=["POST"])
 @cross_origin()
-def connect_to_server():
-    global websocket_servers, connected_clients
+def add_connection():
+    global ws_servers, connected_clients
+
+    client_ip = request.remote_addr
+
     data = request.get_json()
     ip_address = data.get("ip")
     port = data.get("port")
     endpoint = data.get("endpoint")
+    name = data.get("name")
+    isPrivate = data.get("isPrivate")
 
     if not ip_address:
         return "IP address is required", 400
@@ -111,25 +123,106 @@ def connect_to_server():
         ws_url = f"ws://{ip_address}:{port}"
 
     # Forbid connecting to the same server twice
-    if ws_url in websocket_servers.values():
+    if ws_url in ws_servers.keys():
         return "Already connected to this server", 400
 
     ws_server = websocket.WebSocket()
-    ws_server.connect(ws_url)
+    ws_servers[ws_url] = {
+        "ws": ws_server,
+        "clientIp": client_ip,
+        "isPrivate": isPrivate,
+        "name": name,
+    }
 
-    websocket_servers[ws_server] = ws_url
     # connected_clients[ws_server] = thread
 
-    thread = threading.Thread(target=read_data, args=(ws_server,))
-    thread.start()
+    connect_to_server(ws_server, ws_url)
 
     return ""
 
 
+def url_to_wsconfig(ws_url):
+    if ws_url.startswith("ws://"):
+        ws_url = ws_url.replace("ws://", "")
+    ip = ws_url.split(":")[1].replace("//", "")
+    port = ws_url.split(":")[2].split("/")[0]
+    # join the rest for endpoint
+    endpoint = "/".join(ws_url.split(":")[2].split("/")[1:])
+    return ip, port, endpoint
+
+
+def wsconfig_to_url(ip_address, port, endpoint):
+    return f"ws://{ip_address}:{port}/{endpoint}"
+
+
+# Connect to a server emitting data
+@app.route("/get_connections", methods=["GET"])
+@cross_origin()
+def get_connections():
+    global ws_servers
+    # copy a dump of ws_Servers minus ws objects
+    return json.dumps(
+        [
+            {
+                "url": ws_url,
+                "name": ws_servers[ws_url]["name"],
+                "isPrivate": ws_servers[ws_url]["isPrivate"],
+            }
+            for ws_url in ws_servers.keys()
+        ]
+    )
+
+
+def connect_to_server(ws_server, ws_url):
+    ws_server.connect(ws_url)
+    thread = threading.Thread(target=read_data, args=(ws_server, ws_url))
+    thread.start()
+
+
+# Read data continuously from a server, and if a client is subscribed to the source of the data, add it to the client's data list
+def read_data(ws_server, ws_url):
+    try:
+        with app.app_context():
+            global seconds, ws_servers, ws_client_prefs
+            # log("Connected to " + str(ws_server))
+            while ws_url in ws_servers.keys():
+                try:
+                    data = ws_server.recv()
+                    time.sleep(0.01)
+                except ConnectionAbortedError:
+                    time.sleep(0.01)
+                    continue
+                received_at = get_timestamp()
+                event = push_event(data, received_at, ws_url)
+                log("DATA_RECEIVED_AT: " + str(received_at))
+
+                # if a client has been registered as interested in the source of this data...
+                for id in ws_client_prefs.keys():
+                    try:
+                        url = (
+                            "ws://"
+                            + ws_client_prefs[id]["params"]["ip"]
+                            + ":"
+                            + str(ws_client_prefs[id]["params"]["port"])
+                            + "/"
+                        ) + ws_client_prefs[id]["params"]["endpoint"]
+
+                        if url == ws_url:
+                            log("DATA_APPENDED: " + str(event["data"]))
+                            ws_client_prefs[id]["data"].append(event["data"])
+                    except:
+                        pass
+
+    except Exception as e:
+        log("Connection closed with controlled exception: " + str(e))
+        del ws_servers[ws_url]
+
+
+# Disconnect from a data server
 @app.route("/disconnect")
 @cross_origin()
 def disconnect_from_server():
-    global websocket_servers, connected_clients
+    global ws_servers, connected_clients
     data = request.get_json()
     ip_address = data.get("ip")
     port = data.get("port")
@@ -143,15 +236,14 @@ def disconnect_from_server():
     else:
         ws_url = f"ws://{ip_address}"
 
-    if ws_url in websocket_servers.values():
-        for ws in websocket_servers:
-            if websocket_servers[ws] == ws_url:
-                ws.close()
-                connected_clients[ws].join()  # Wait for the thread to finish
-                del websocket_servers[ws]
-                del connected_clients[ws]
-                print("Disconnected from " + ws_url)
-                return ""
+    if ws_url in ws_servers.keys():
+        ws = ws_servers[ws_url]["ws"]
+        ws.close()
+        connected_clients[ws].join()  # Wait for the thread to finish
+        del ws_servers[ws]
+        del connected_clients[ws]
+        log("Disconnected from " + ws_url)
+        return ""
     else:
         return "Server not found", 404
 
@@ -161,95 +253,66 @@ def disconnect_from_server():
 expiry_seconds = 10
 
 
-def read_data(ws_server):
-    try:
-        with app.app_context():
-            global seconds, websocket_servers, ws_clients
-            ws_url = websocket_servers[ws_server]
-            # print("Connected to " + str(ws_server))
-            while ws_server:
-                try:
-                    data = ws_server.recv()
-                except ConnectionAbortedError:
-                    # print("Connection closed")
-                    break
-                received_at = get_timestamp()
-                event = push_event(data, received_at, ws_url)
-                print("DATA_RECEIVED_AT: " + str(received_at))
-
-                # if a client has been registered as interested in the source of this data...
-                # print(ws_clients)
-                for id in ws_clients.keys():
-                    try:
-                        url = (
-                            "ws://"
-                            + ws_clients[id]["params"]["ip"]
-                            + ":"
-                            + str(ws_clients[id]["params"]["port"])
-                            + "/"
-                        ) + ws_clients[id]["params"]["endpoint"]
-
-                        # print("Checking if " + url + " matches " + ws_url)
-
-                        if url == ws_url:
-                            # print("Sending data to client " + id + " from " + ws_url)
-                            ws_clients[id]["data"].append(event["data"])
-                            # print("Data sent to client " + id + " from " + ws_url)
-                    except:
-                        pass
-
-    except Exception as e:
-        print("Connection closed with controlled exception: " + str(e))
-        del websocket_servers[ws_server]
-
-
-def manage_client(ws_client):
-    with app.app_context():
-        while True:
-            # ws_client.ping()
-            time.sleep(1)
-
-
+# Handle an incoming client connection, and continuously send data that the client is subscribed to
 @sock.route("/ws/connect")
-@cross_origin()
 def connect_to_client(ws_client):
-    global ws_clients
-    # while True:
-    #     ws.send(json.dumps(read_latest_event()))
-    #     time.sleep(0.1)
+    global ws_client_prefs
 
     client_addr = ws_client.environ.get("REMOTE_ADDR")
     # client_port = ws_client.environ.get("REMOTE_PORT")
     ws_client_id = client_addr  # + ":" + str(client_port)
 
-    if ws_client_id in ws_clients.keys():
+    if ws_client_id in ws_client_prefs.keys():
         return "Client already connected", 400
 
     # generate a GUID
 
-    print("Client connected: " + ws_client_id)
+    log("Client connected: " + ws_client_id)
 
-    # Store the parameters for the client
-    ws_clients[ws_client_id] = {"client": ws_client, "params": {}, "data": []}
+    # TODO: Debug this
 
-    # thread = threading.Thread(target=manage_client, args=(ws_client,))
-    # thread.start()
+    # # Store the parameters for the client
+    # log("1: " + str(ws_clients))
+    # ws_clients[ws_client_id] = {"params": {}, "data": []}
+    # log("2: " + str(ws_clients))
+
+    # while True:
+    #     ws_client.send(json.dumps("0 1 1"))
+    #     time.sleep(0.1)
 
     while True:
+
+        if ws_client_id not in ws_client_prefs.keys():
+            time.sleep(0.1)
+            continue
+
+        log("CONSIDERING DATA: " + str(ws_client_prefs[ws_client_id]["data"]))
+
         try:
-            if len(ws_clients[ws_client_id]["data"]) > 0:
-                ws_client.send(json.dumps(ws_clients[ws_client_id]["data"].pop(0)))
+            while len(ws_client_prefs[ws_client_id]["data"]) > 0:
+                # ws_client.send(json.dumps(str(time.time()) + " 1 1"))
+                data = ws_client_prefs[ws_client_id]["data"].pop(0)
+                log("Sending data to client: " + str(data))
+                log(str(ws_client))
+                ws_client.send(data)
+                log("ok")
         except ConnectionAbortedError:
-            print("Connection closed")
+            log("Connection closed")
             break
+        time.sleep(0.1)
+    # thread = threading.Thread(
+    #     target=send_data_to_client, args=(ws_client_id, ws_client)
+    # )
+    # thread.start()
 
     return ""
 
 
-@app.route("/update", methods=["POST"])
+# Allow a client to update their subscription preferences
+@app.route("/subscribe", methods=["POST"])
 @cross_origin()
-def update_from_client():
-    global ws_clients
+def client_subscribe():
+    global ws_client_prefs
     # while True:
     #     ws.send(json.dumps(read_latest_event()))
     #     time.sleep(0.1)
@@ -259,19 +322,23 @@ def update_from_client():
     # port = request.environ.get("REMOTE_PORT")
     id = ip_address
 
-    print("Client updating: " + id)
+    log("Client updating: " + id + " with data: " + str(ws_client_prefs))
 
     data = request.get_json()
     params = data
 
-    for id in ws_clients.keys():
-        print(id)
+    for id in ws_client_prefs.keys():
+        log(id)
 
     # if client unreocgnized, abort
-    # update parameters for the client
-    ws_clients[id]["params"] = params
+    if id not in ws_client_prefs.keys():
+        ws_client_prefs[id] = {"params": {}, "data": []}
+        # return "Client " + id + " not recognized", 400
 
-    print("After update: " + str(ws_clients))
+    # update parameters for the client
+    ws_client_prefs[id]["params"] = params
+
+    log("After update: " + str(ws_client_prefs))
 
     return "OK"
 
@@ -322,19 +389,19 @@ def delete_event(id):
 @app.route("/events/by_age/<int:age>", methods=["DELETE"])
 def delete_events_by_age(age):
     try:
-        print("Deleting events older than " + str(age) + " seconds")
+        log("Deleting events older than " + str(age) + " seconds")
         cutoff_time = get_timestamp() - age
         events = Event.query.filter(Event.received_at < cutoff_time).all()
         if len(events) == 0:
-            print("Deleted 0 events")
+            log("Deleted 0 events")
             return json.dumps([])
         # for event in events:
         # db.session.delete(event)
         # db.session.commit()
-        # print("Deleted " + str(len(events)) + " events")
+        # log("Deleted " + str(len(events)) + " events")
         return json.dumps([format_event(event) for event in events])
     except Exception as e:
-        print("Error deleting events: " + str(e))
+        log("Error deleting events: " + str(e))
         return json.dumps([])
 
 

@@ -7,7 +7,8 @@ class DataStreamMenuItemProps {
 
 export class DataStreamConfig {
     name!: string;
-    webSocketConfig!: WebSocketConfig;
+    url!: string;
+    isPrivate!: boolean;
     //dataConfig!: DataConfig;
 
 }
@@ -19,8 +20,9 @@ function DataStreamMenuItem(props: DataStreamMenuItemProps) {
     return (
         <div>
             <div>{name}</div>
-            <div>{dataStreamConfig.webSocketConfig.ip}</div>
-            <div>{dataStreamConfig.webSocketConfig.port}</div>
+            <div>{dataStreamConfig.url}</div>
+            {/* <div>{dataStreamConfig.webSocketConfig.ip}</div>
+            <div>{dataStreamConfig.webSocketConfig.port}</div> */}
         </div>
     );
 }

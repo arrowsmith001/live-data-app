@@ -1,7 +1,7 @@
-
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 
-export const useAppStyles = makeStyles((theme) => ({
+
+export const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
     },
@@ -10,9 +10,11 @@ export const useAppStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
+        backgroundColor: 'black'
     },
     menuButton: {
         marginRight: theme.spacing(2),
+        color: 'white'
     },
     drawerHeader: {
         display: 'flex',
@@ -32,5 +34,28 @@ export const useAppStyles = makeStyles((theme) => ({
     subheader: {
         fontSize: '1.5em',
         fontWeight: 'bold',
-    }
+    },
+    drawer: {
+        width: drawerWidth,
+        flexShrink: 0,
+    },
+    drawerPaper: {
+        width: drawerWidth,
+    },
+    contentShift: {
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        marginRight: -drawerWidth,
+    },
+    appBarShift: (props?: { open?: boolean }) => ({
+        width: `calc(100% - ${props?.open ? drawerWidth : 0}px)`,
+        marginLeft: props?.open ? drawerWidth : 0,
+        transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        backgroundColor: 'black'
+    })
 }));

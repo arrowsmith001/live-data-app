@@ -6,17 +6,36 @@ export class WebSocketConfig {
     port!: number;
     endpoint!: string;
 
-    toDisplayString(): string {
+    toDisplayString = () => {
         return `${this.ip}:${this.port}/${this.endpoint}`;
     }
 
-    toFullAddress(): string {
+    toFullAddress = () => {
         return `ws://${this.ip}:${this.port}/${this.endpoint}`;
     }
 
-    constructor(init?: Partial<WebSocketConfig>) {
-        Object.assign(this, init);
+    constructor(init?: Partial<WebSocketConfig> | string) {
+        if (typeof init === 'string') {
+            if (init.startsWith('ws://')) {
+                init = init.substring(5);
+            }
+            const parts = init.split(':');
+            this.ip = parts[0];
+            if (parts[1].includes('/')) {
+                console.log(parts);
+                const parts2 = parts[1].split('/');
+                this.port = parseInt(parts2[0]);
+                this.endpoint = parts2.slice(1).join('/');
+            }
+            else {
+                this.port = parseInt(parts[1]);
+                this.endpoint = '/';
+            }
+        } else if (init) {
+            Object.assign(this, init);
+        }
     }
+
 }
 
 class WebSocketListenerProps {

@@ -1,47 +1,25 @@
 import { AppBar, Icon, IconButton, Toolbar, Typography, Theme } from "@mui/material";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import { useAppStyles } from "../styles/AppStyles";
 import clsx from "clsx";
+import { useStyles } from "./useStyles";
 
 
 interface MainTopProps {
     open: boolean;
     handleDrawerOpen: () => void;
-    left: number;
 }
 
-const useStyles = makeStyles((theme) => ({
-    appBarShift: (props: MainTopProps) => ({
-        width: `calc(100% - ${props.left}px)`,
-        marginLeft: props.left,
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-    drawerHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        padding: theme.spacing(0, 1),
-        ...theme.mixins.toolbar,
-        justifyContent: 'flex-end',
-    },
-    menuButton: {
-        marginRight: theme.spacing(2),
-    },
-}));
-
+export const drawerWidth = 400;
 
 function MainTop({ ...props }: MainTopProps) {
 
-    const appStyles = useAppStyles();
-    const classes = useStyles(props);
+    const styles = useStyles(props);
+
 
     return <AppBar
         position="fixed"
-        className={clsx(appStyles.appBar, {
-            [classes.appBarShift]: props.open,
-        })}
+        className={clsx(styles.appBar)}
+        sx={{ marginLeft: props.open ? drawerWidth : 0, width: `calc(100% - ${props.open ? drawerWidth : 0}px)` }}
     >
         <Toolbar>
             <IconButton
@@ -49,7 +27,7 @@ function MainTop({ ...props }: MainTopProps) {
                 aria-label="open drawer"
                 onClick={props.handleDrawerOpen}
                 edge="start"
-                className={classes.menuButton}
+                className={styles.menuButton}
             >
                 <Icon />
             </IconButton>
