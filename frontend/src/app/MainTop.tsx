@@ -2,6 +2,7 @@ import { AppBar, Icon, IconButton, Toolbar, Typography, Theme } from "@mui/mater
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import clsx from "clsx";
 import { useStyles } from "./useStyles";
+import { drawerWidth } from "./MainDrawer";
 
 
 interface MainTopProps {
@@ -9,7 +10,6 @@ interface MainTopProps {
     handleDrawerOpen: () => void;
 }
 
-export const drawerWidth = 400;
 
 function MainTop({ ...props }: MainTopProps) {
 
@@ -18,12 +18,11 @@ function MainTop({ ...props }: MainTopProps) {
 
     return <AppBar
         position="fixed"
-        className={clsx(styles.appBar)}
         sx={{ marginLeft: props.open ? drawerWidth : 0, width: `calc(100% - ${props.open ? drawerWidth : 0}px)` }}
     >
         <Toolbar>
             <IconButton
-                color="inherit"
+                sx={{ color: 'white' }}
                 aria-label="open drawer"
                 onClick={props.handleDrawerOpen}
                 edge="start"

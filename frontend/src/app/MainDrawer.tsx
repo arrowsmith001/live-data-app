@@ -15,6 +15,8 @@ class MainDrawerProps {
     dataStreams!: DataStreamConfig[];
 }
 
+export const drawerWidth = 400;
+
 export function MainDrawer({ ...props }: MainDrawerProps) {
 
     const styles = useStyles();

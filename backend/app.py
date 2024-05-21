@@ -31,16 +31,16 @@ class Event(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.String(120), nullable=False)
-    received_at = db.Column(db.Float, nullable=False)
-    received_from = db.Column(db.String(120), nullable=False)
+    server_timestamp = db.Column(db.Float, nullable=False)
+    origin = db.Column(db.String(120), nullable=False)
 
     def __repr__(self):
-        return f"Event {self.id} {self.data} {self.received_at} {self.received_from}"
+        return f"Event {self.id} {self.data} {self.server_timestamp} {self.origin}"
 
-    def __init__(self, data, received_at, received_from):
+    def __init__(self, data, server_timestamp, origin):
         self.data = data
-        self.received_at = received_at
-        self.received_from = received_from
+        self.server_timestamp = server_timestamp
+        self.origin = origin
 
 
 app = Flask(__name__)
@@ -83,8 +83,8 @@ def format_event(event: Event):
     return {
         "id": event.id,
         "data": event.data,
-        "received_at": event.received_at,
-        "received_from": event.received_from,
+        "server_timestamp": event.server_timestamp,
+        "origin": event.origin,
     }
 
 
@@ -96,7 +96,17 @@ ws_client_prefs = {}
 
 @app.route("/")
 def test():
-    return "Hello, World!"
+    global ws_servers, connected_clients, ws_client_prefs
+    debugInfo = {
+        "ws_servers": {
+            ws_url: ws_servers[ws_url]["name"] for ws_url in ws_servers.keys()
+        },
+        "connected_clients": {
+            ws_url: connected_clients[ws_url] for ws_url in connected_clients.keys()
+        },
+        "ws_client_prefs": ws_client_prefs,
+    }
+    return json.dumps(debugInfo)
 
 
 # Connect to a server emitting data
@@ -192,9 +202,9 @@ def read_data(ws_server, ws_url):
                 except ConnectionAbortedError:
                     time.sleep(0.01)
                     continue
-                received_at = get_timestamp()
-                event = push_event(data, received_at, ws_url)
-                log("DATA_RECEIVED_AT: " + str(received_at))
+                server_timestamp = get_timestamp()
+                event = push_event(data, server_timestamp, ws_url)
+                log("DATA_server_timestamp: " + str(server_timestamp))
 
                 # if a client has been registered as interested in the source of this data...
                 for id in ws_client_prefs.keys():
@@ -209,7 +219,7 @@ def read_data(ws_server, ws_url):
 
                         if url == ws_url:
                             log("DATA_APPENDED: " + str(event["data"]))
-                            ws_client_prefs[id]["data"].append(event["data"])
+                            ws_client_prefs[id]["events"].append(event)
                     except:
                         pass
 
@@ -262,9 +272,6 @@ def connect_to_client(ws_client):
     # client_port = ws_client.environ.get("REMOTE_PORT")
     ws_client_id = client_addr  # + ":" + str(client_port)
 
-    if ws_client_id in ws_client_prefs.keys():
-        return "Client already connected", 400
-
     # generate a GUID
 
     log("Client connected: " + ws_client_id)
@@ -286,15 +293,15 @@ def connect_to_client(ws_client):
             time.sleep(0.1)
             continue
 
-        log("CONSIDERING DATA: " + str(ws_client_prefs[ws_client_id]["data"]))
+        log("CONSIDERING DATA: " + str(len(ws_client_prefs[ws_client_id]["events"])))
 
         try:
-            while len(ws_client_prefs[ws_client_id]["data"]) > 0:
+            while len(ws_client_prefs[ws_client_id]["events"]) > 0:
                 # ws_client.send(json.dumps(str(time.time()) + " 1 1"))
-                data = ws_client_prefs[ws_client_id]["data"].pop(0)
-                log("Sending data to client: " + str(data))
+                event = ws_client_prefs[ws_client_id]["events"].pop(0)
+                log("Sending data to client: " + str(event))
                 log(str(ws_client))
-                ws_client.send(data)
+                ws_client.send(json.dumps(event))
                 log("ok")
         except ConnectionAbortedError:
             log("Connection closed")
@@ -332,7 +339,7 @@ def client_subscribe():
 
     # if client unreocgnized, abort
     if id not in ws_client_prefs.keys():
-        ws_client_prefs[id] = {"params": {}, "data": []}
+        ws_client_prefs[id] = {"params": {}, "events": []}
         # return "Client " + id + " not recognized", 400
 
     # update parameters for the client
@@ -345,18 +352,18 @@ def client_subscribe():
 
 @app.route("/event", methods=["POST"])
 def create_event():
-    received_at = get_timestamp()
+    server_timestamp = get_timestamp()
     data = request.get_json().get("data")
-    received_from = request.remote_addr
-    return push_event(data, received_at, received_from)
+    origin = request.remote_addr
+    return push_event(data, server_timestamp, origin)
 
 
 latest_event = None
-latest_received_from = None
+latest_origin = None
 
 
-def push_event(data, received_at, received_from):
-    event = Event(data, received_at, received_from)
+def push_event(data, server_timestamp, origin):
+    event = Event(data, server_timestamp, origin)
     # db.session.add(event)
     # db.session.commit()
     return format_event(event)
@@ -364,7 +371,7 @@ def push_event(data, received_at, received_from):
 
 @app.route("/events", methods=["GET"])
 def read_events():
-    events = Event.query.order_by(asc(Event.received_at)).all()
+    events = Event.query.order_by(asc(Event.server_timestamp)).all()
     return json.dumps([format_event(event) for event in events])
 
 
@@ -391,7 +398,7 @@ def delete_events_by_age(age):
     try:
         log("Deleting events older than " + str(age) + " seconds")
         cutoff_time = get_timestamp() - age
-        events = Event.query.filter(Event.received_at < cutoff_time).all()
+        events = Event.query.filter(Event.server_timestamp < cutoff_time).all()
         if len(events) == 0:
             log("Deleted 0 events")
             return json.dumps([])

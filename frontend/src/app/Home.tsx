@@ -4,18 +4,22 @@ import { format } from 'date-fns';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import WebSocketListener, { WebSocketConfig } from '../network/WebSocketListener';
 import DataStreamMenuItem, { DataStreamConfig } from './DataStreamMenuItem';
-import { Container, AppBar, Toolbar, Typography, Icon, ListItemIcon, Theme, Button } from '@mui/material';
+import { Container, AppBar, Toolbar, Typography, Icon, ListItemIcon, Theme, Button, IconButton, Box, Grid } from '@mui/material';
 import { LineChart } from '@mui/x-charts';
 import React from 'react';
 import { useTheme } from '@material-ui/core/styles';
 import clsx from 'clsx';
-import { Title } from '@material-ui/icons';
+import { ChevronLeft, Menu, Title } from '@material-ui/icons';
 import MainTop from './MainTop';
-import { useWebSocketHook } from '../network/WebSocketHook';
+import { useServerHook } from '../network/useServerHook';
 import { config } from 'process';
 import { addConnection, getConnections } from '../api/ApiFunctions';
 import { MainDrawer } from './MainDrawer';
 import { useStyles } from './useStyles';
+import MainContent from './MainContent';
+import { DataSchema, DataType, SchemaItem } from '../data/DataReader';
+import SchemaToolbar from './SchemaToolbar';
+import exp from 'constants';
 
 
 const WS_CONNECT_URL = 'ws://localhost:5000/ws/connect';
@@ -24,7 +28,17 @@ function Home() {
 
     const [dataStreams, setDataStreams] = useState<DataStreamConfig[]>([]);
 
-    const { messages, readyState, error } = useWebSocketHook(new WebSocketConfig(WS_CONNECT_URL), (message) => { console.log(message); });
+    const schema = new DataSchema(
+        [
+            new SchemaItem('time', DataType.TIMESTAMP),
+            new SchemaItem('x', DataType.NUMBER),
+            new SchemaItem('y', DataType.NUMBER),
+        ],
+        ' '
+    );
+
+    const { messages, readyState, error, setExpiryTime, getExpiryTime } = useServerHook(
+        new WebSocketConfig(WS_CONNECT_URL));
 
     const [open, setOpen] = React.useState(true);
 
@@ -70,52 +84,35 @@ function Home() {
     const styles = useStyles();
     const theme = useTheme();
 
+
     return (
         <div className={styles.root}>
-            <MainTop open={open} handleDrawerOpen={handleDrawerOpen} />
-            <MainDrawer open={open}
-                handleDrawerClose={handleDrawerClose}
-                onAddConnection={onAddConnection}
-                onRefreshConnections={onRefreshConnections}
-                dataStreams={dataStreams} />
-            <Toolbar />
-            <Typography paragraph>
-                ${messages?.length ?? '...'}
-            </Typography>
-            {messages && <div>{messages.length}</div>}
-            {error && <div>Error: {error.toString()}</div>}
-            <LineChart
-                width={600}
-                height={300}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                xAxis={[{
-                    data: messages?.map(m => {
-                        return (m[0] as Date).getTime();
-                    })
-                }]}
-                series={[{
-                    data: messages?.map(m => {
-                        return m[1];
-                    })
-                }]} // placeholder data
-            >
-            </LineChart>
-            <LineChart
-                width={600}
-                height={300}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                xAxis={[{
-                    data: messages?.map(m => {
-                        return (m[0] as Date).getTime();
-                    })
-                }]}
-                series={[{
-                    data: messages?.map(m => {
-                        return m[1];
-                    })
-                }]} // placeholder data
-            >
-            </LineChart>
+
+            <IconButton
+                sx={{ position: 'absolute', top: '4px', left: '4px' }}
+                onClick={handleDrawerOpen}>
+                <Menu />
+            </IconButton>
+
+            <Grid container xs={2} spacing={2}>
+                <MainDrawer
+                    open={open}
+                    handleDrawerClose={handleDrawerClose}
+                    onAddConnection={onAddConnection}
+                    onRefreshConnections={onRefreshConnections}
+                    dataStreams={dataStreams} />
+
+                <Grid item xs={8}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '800px' }}>
+                        <SchemaToolbar schema={schema} lastEvent={messages[messages.length - 1]} />
+                        Main
+                        {/* <MainContent messages={messages} error={undefined} /> */}
+
+                    </Box>
+                </Grid>
+            </Grid>
+
+
         </div >
     );
 

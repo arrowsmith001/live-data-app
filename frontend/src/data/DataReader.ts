@@ -13,7 +13,7 @@ export class DataReader {
         let result = [];
         for (let i = 0; i < values.length; i++) {
             let value = values[i];
-            switch (this.schema.types[i]) {
+            switch (this.schema.items[i].type) {
                 case DataType.STRING:
                     result.push(value);
                     break;
@@ -27,7 +27,7 @@ export class DataReader {
                     if (isNaN(f2)) return { error: i };
                     // split milliseconds
                     const d = new Date(f2 * 1000);
-                    console.log(d.toString());
+                    //console.log(d.toString());
                     if (isNaN(d.getTime())) return { error: i };
                     result.push(d);
                     break;
@@ -43,15 +43,25 @@ export class DataReader {
 
 }
 
+export class SchemaItem {
+
+    label: string;
+    type: DataType;
+
+    constructor(label: string, type: DataType) {
+        this.label = label;
+        this.type = type;
+    }
+}
+
+
 export class DataSchema {
 
-    labels: string[];
-    types: DataType[];
+    items: SchemaItem[];
     delimeter: string;
 
-    constructor(labels: string[], types: DataType[], delimeter: string) {
-        this.labels = labels;
-        this.types = types;
+    constructor(items: SchemaItem[], delimeter: string) {
+        this.items = items;
         this.delimeter = delimeter;
     }
 }

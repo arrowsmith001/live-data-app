@@ -22,7 +22,7 @@ export class WebSocketConfig {
             const parts = init.split(':');
             this.ip = parts[0];
             if (parts[1].includes('/')) {
-                console.log(parts);
+                //console.log(parts);
                 const parts2 = parts[1].split('/');
                 this.port = parseInt(parts2[0]);
                 this.endpoint = parts2.slice(1).join('/');

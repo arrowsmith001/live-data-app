@@ -1,5 +1,6 @@
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 
+const drawerWidth = 400;
 
 export const useStyles = makeStyles((theme) => ({
     root: {
@@ -10,11 +11,12 @@ export const useStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
-        backgroundColor: 'black'
     },
     menuButton: {
         marginRight: theme.spacing(2),
-        color: 'white'
+        position: 'absolute',
+        left: 0,
+        top: 0
     },
     drawerHeader: {
         display: 'flex',
@@ -30,6 +32,14 @@ export const useStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
+    },
+    shift: {
+        flexGrow: 1,
+        transition: theme.transitions.create('marginLeft', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        marginLeft: drawerWidth,
     },
     subheader: {
         fontSize: '1.5em',
@@ -56,6 +66,5 @@ export const useStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
         }),
-        backgroundColor: 'black'
     })
 }));
