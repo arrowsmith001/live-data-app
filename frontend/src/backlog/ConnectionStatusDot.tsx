@@ -1,6 +1,6 @@
 import useWebSocket from "react-use-websocket";
-import { WebSocketConfig } from "../network/WebSocketListener";
-import { useServerHook } from "../network/useServerHook";
+import { WebSocketConfig } from "./WebSocketListener";
+import { useServerHook } from "./useServerHook";
 
 // interface ConnectionStatusDotProps {
 //     wsConfig: WebSocketConfig;

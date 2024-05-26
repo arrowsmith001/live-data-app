@@ -1,6 +1,6 @@
 import axios from "axios";
-import { WebSocketConfig } from "../network/WebSocketListener";
-import { DataStreamConfig } from "../app/DataStreamMenuItem";
+import { WebSocketConfig } from "../backlog/WebSocketListener";
+import { DataStreamConfig } from "../backlog/DataStreamMenuItem";
 
 export const API_URL = 'http://localhost:5000';
 

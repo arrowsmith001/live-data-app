@@ -1,5 +1,5 @@
 import { AppBar, Icon, IconButton, Toolbar, Typography, Theme } from "@mui/material";
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+//import { makeStyles, useTheme } from '@material-ui/core/styles';
 import clsx from "clsx";
 import { useStyles } from "./useStyles";
 import { drawerWidth } from "./MainDrawer";
@@ -13,7 +13,7 @@ interface MainTopProps {
 
 function MainTop({ ...props }: MainTopProps) {
 
-    const styles = useStyles(props);
+    const styles: any = {};
 
 
     return <AppBar

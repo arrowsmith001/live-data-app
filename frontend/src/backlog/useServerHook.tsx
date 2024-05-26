@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WebSocketConfig } from "./WebSocketListener";
-import { DataReader, DataSchema, DataType } from "../data/DataReader";
+import { DataReader, DataSchema, DataType } from "./DataReader";
 import { set } from "date-fns";
 import { DataEvent } from "./DataEvent";
 

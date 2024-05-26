@@ -2,22 +2,22 @@ import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
-import WebSocketListener, { WebSocketConfig } from '../network/WebSocketListener';
+import WebSocketListener, { WebSocketConfig } from './WebSocketListener';
 import DataStreamMenuItem, { DataStreamConfig } from './DataStreamMenuItem';
 import { Container, AppBar, Toolbar, Typography, Icon, ListItemIcon, Theme, Button, IconButton, Box, Grid } from '@mui/material';
 import { LineChart } from '@mui/x-charts';
 import React from 'react';
-import { useTheme } from '@material-ui/core/styles';
+import { useTheme } from '@mui/material/styles';
 import clsx from 'clsx';
-import { ChevronLeft, Menu, Title } from '@material-ui/icons';
+import { ChevronLeft, Menu, Title } from '@mui/icons-material';
 import MainTop from './MainTop';
-import { useServerHook } from '../network/useServerHook';
+import { useServerHook } from './useServerHook';
 import { config } from 'process';
 import { addConnection, getConnections } from '../api/ApiFunctions';
 import { MainDrawer } from './MainDrawer';
 import { useStyles } from './useStyles';
 import MainContent from './MainContent';
-import { DataSchema, DataType, SchemaItem } from '../data/DataReader';
+import { DataSchema, DataType, SchemaItem } from './DataReader';
 import SchemaToolbar from './SchemaToolbar';
 import exp from 'constants';
 
@@ -81,7 +81,7 @@ function Home() {
 
 
 
-    const styles = useStyles();
+    const styles: any = {};
     const theme = useTheme();
 
 

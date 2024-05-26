@@ -1,4 +1,4 @@
-import { WebSocketConfig } from "../network/WebSocketListener";
+import { WebSocketConfig } from "./WebSocketListener";
 
 class DataStreamMenuItemProps {
     dataStreamConfig!: DataStreamConfig;

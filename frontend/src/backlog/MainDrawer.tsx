@@ -1,11 +1,11 @@
-import { WebSocketConfig } from '../network/WebSocketListener';
+import { WebSocketConfig } from './WebSocketListener';
 import { DataStreamConfig } from './DataStreamMenuItem';
 import { Drawer, IconButton, ListItem, List, ListItemText, Divider } from '@mui/material';
 import React from 'react';
-import { Add, ChevronLeft, NetworkCheck, Refresh, Settings } from '@material-ui/icons';
+import { Add, ChevronLeft, NetworkCheck, Refresh, Settings } from '@mui/icons-material';
 import ConnectionStatusDot from './ConnectionStatusDot';
 import { subscribe } from '../api/ApiFunctions';
-import { useStyles } from './useStyles';
+import { useStyles } from "./useStyles";
 
 class MainDrawerProps {
     open!: boolean;
@@ -19,7 +19,7 @@ export const drawerWidth = 400;
 
 export function MainDrawer({ ...props }: MainDrawerProps) {
 
-    const styles = useStyles();
+    const styles: any = {};
 
     const { open, handleDrawerClose, onAddConnection, onRefreshConnections, dataStreams } = props;
 

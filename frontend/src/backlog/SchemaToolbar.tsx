@@ -1,6 +1,6 @@
 import { Card, Grid } from "@mui/material";
-import { DataSchema, DataType } from "../data/DataReader";
-import { DataEvent } from "../network/DataEvent";
+import { DataSchema, DataType } from "./DataReader";
+import { DataEvent } from "./DataEvent";
 
 
 
