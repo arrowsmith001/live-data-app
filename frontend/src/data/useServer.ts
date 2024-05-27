@@ -22,3 +22,13 @@ export const useDataArray = () => {
     return context.dataArray;
 };
 
+export const useSetSecs = () => {
+    const context = useContext(WebSocketContext);
+
+    if (context === undefined || context === null) {
+        throw new Error('useSetSecs must be used within a WebSocketProvider');
+    }
+
+    return context.setSecs;
+};
+

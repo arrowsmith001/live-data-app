@@ -28,14 +28,7 @@ function Home() {
 
     const [dataStreams, setDataStreams] = useState<DataStreamConfig[]>([]);
 
-    const schema = new DataSchema(
-        [
-            new SchemaItem('time', DataType.TIMESTAMP),
-            new SchemaItem('x', DataType.NUMBER),
-            new SchemaItem('y', DataType.NUMBER),
-        ],
-        ' '
-    );
+    const schema = {};
 
     const { messages, readyState, error, setExpiryTime, getExpiryTime } = useServerHook(
         new WebSocketConfig(WS_CONNECT_URL));
@@ -104,7 +97,7 @@ function Home() {
 
                 <Grid item xs={8}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '800px' }}>
-                        <SchemaToolbar schema={schema} lastEvent={messages[messages.length - 1]} />
+                        {/* <SchemaToolbar schema={schema} lastEvent={messages[messages.length - 1]} /> */}
                         Main
                         {/* <MainContent messages={messages} error={undefined} /> */}
 

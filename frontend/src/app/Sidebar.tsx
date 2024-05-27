@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Sidebar as ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { tokens } from "../styles/theme";
-import { BarChartOutlined, CalendarViewDayOutlined, ContactsOutlined, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined } from "@mui/icons-material";
+import { Add, BarChartOutlined, CalendarViewDayOutlined, ContactsOutlined, Delete, Edit, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined, Schema, SettingsInputAntenna } from "@mui/icons-material";
 // import "react-pro-sidebar/dist/styles";
 
 type ItemArgs = {
@@ -17,17 +17,19 @@ type ItemArgs = {
 const Item = ({ title, to, icon, selected, setSelected }: ItemArgs) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
+
+    const navigate = useNavigate();
     return (
         <MenuItem
             active={selected === title}
             style={{
                 color: colors.grey[100],
             }}
-            onClick={() => setSelected(title)}
+            onClick={() => { setSelected(title); navigate(to); }}
             icon={icon}
         >
             <Typography>{title}</Typography>
-            <Link to={to} />
+            {/* <Link to={to} /> */}
         </MenuItem>
     );
 };
@@ -116,6 +118,8 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
                     )}
 
                     <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+
+
                         <Item
                             title="Dashboard"
                             to="/"
@@ -124,75 +128,18 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
                             setSelected={setSelected}
                         />
 
-                        <Typography
-                            variant="h6"
-                            color={colors.grey[300]}
-                            sx={{ m: "15px 0 5px 20px" }}
-                        >
-                            Data
-                        </Typography>
-                        <Item
-                            title="Manage Team"
-                            to="/team"
-                            icon={<PeopleOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Contacts Information"
-                            to="/contacts"
-                            icon={<ContactsOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Invoices Balances"
-                            to="/invoices"
-                            icon={<ReceiptOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
 
-                        <Typography
-                            variant="h6"
-                            color={colors.grey[300]}
-                            sx={{ m: "15px 0 5px 20px" }}
-                        >
-                            Pages
-                        </Typography>
                         <Item
-                            title="Profile Form"
-                            to="/form"
-                            icon={<PersonOutlined />}
+                            title="Connections"
+                            to="/connections"
+                            icon={<SettingsInputAntenna />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                         <Item
-                            title="Calendar"
-                            to="/calendar"
-                            icon={<CalendarViewDayOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="FAQ Page"
-                            to="/faq"
-                            icon={<HelpOutlineOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-
-                        <Typography
-                            variant="h6"
-                            color={colors.grey[300]}
-                            sx={{ m: "15px 0 5px 20px" }}
-                        >
-                            Charts
-                        </Typography>
-                        <Item
-                            title="Bar Chart"
-                            to="/bar"
-                            icon={<BarChartOutlined />}
+                            title="Schemas"
+                            to="/schema"
+                            icon={<Schema />}
                             selected={selected}
                             setSelected={setSelected}
                         />

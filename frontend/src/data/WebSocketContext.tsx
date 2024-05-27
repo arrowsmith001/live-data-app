@@ -10,6 +10,7 @@ interface WebSocketProviderProps {
 interface WebSocketContextType {
     latestData: ServerDataItem | null;
     dataArray: ServerDataItem[];
+    setSecs: (secs: number) => void;
 }
 
 export type ServerDataItem = {
@@ -39,12 +40,11 @@ export class ServerData {
 }
 
 export const WebSocketContext: React.Context<WebSocketContextType | null> = createContext<WebSocketContextType | null>(null);
-
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
 
     const [latestData, setLatestData] = useState<ServerDataItem | null>(null);
     const [dataArray, setDataArray] = useState<ServerDataItem[]>([]);
-
+    const [secs, setSecs] = useState<number>(5); // Add state for secs parameter
 
     useEffect(() => {
         WebSocketService.connect(WS_URL);
@@ -54,7 +54,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             setDataArray(prev => {
 
                 // truncate to last X seconds
-                const secs = 5;
                 const cutoff = (message.server_timestamp - secs);
                 var i = 0;
                 while (i < prev.length && prev[i].server_timestamp < cutoff) {
@@ -68,10 +67,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         return () => {
             WebSocketService.removeCallback(callbackID);
         };
-    }, []);
+    }, [secs]); // Add secs as a dependency to the useEffect hook
 
     return (
-        <WebSocketContext.Provider value={{ latestData, dataArray }}>
+        <WebSocketContext.Provider value={{ latestData, dataArray, setSecs }}> {/* Add setSecs to the context value */}
             {children}
         </WebSocketContext.Provider>
     );

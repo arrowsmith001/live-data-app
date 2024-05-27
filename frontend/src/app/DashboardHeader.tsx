@@ -7,6 +7,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import LineChart from "../components/LineChart";
 import Header from "../components/Header";
+import { FiberManualRecord } from "@mui/icons-material";
+import { useLatestData } from "../data/useServer";
 
 
 const DashboardHeader = () => {
@@ -14,24 +16,27 @@ const DashboardHeader = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    return <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+    const latestData = useLatestData();
 
-        <Box>
-            <Button
-                sx={{
-                    backgroundColor: colors.blueAccent[700],
-                    color: colors.grey[100],
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    padding: "10px 20px",
-                }}
-            >
-                <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-                Download Reports
-            </Button>
+    const data = !latestData ? '-' : latestData?.data;
+    const time = !latestData ? '-' : new Date(latestData?.server_timestamp * 1000).toLocaleTimeString();
+
+
+    return (
+        <Box
+            gridRow={1}
+            p={1}
+            sx={{
+                backgroundColor: colors.primary[400],
+                width: '100%',
+                display: 'flex',
+            }}
+            borderRadius="3px"
+        >
+
+            <Header title={data} subtitle={time} icon={<FiberManualRecord color="error" />} />
         </Box>
-    </Box>;
+    );
 }
 
 export default DashboardHeader;

@@ -43,27 +43,16 @@ export class DataReader {
 
 }
 
-export class SchemaItem {
-
+export type SchemaItem = {
     label: string;
     type: DataType;
-
-    constructor(label: string, type: DataType) {
-        this.label = label;
-        this.type = type;
-    }
 }
 
 
-export class DataSchema {
+export type DataSchema = {
 
     items: SchemaItem[];
     delimeter: string;
-
-    constructor(items: SchemaItem[], delimeter: string) {
-        this.items = items;
-        this.delimeter = delimeter;
-    }
 }
 
 export enum DataType {

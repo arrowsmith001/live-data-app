@@ -11,8 +11,6 @@ const Topbar = () => {
     const colors = tokens(theme.palette.mode);
     const colorMode = useContext(ColorModeContext);
 
-    const latestData = useLatestData();
-
     return (
         <Box
             display='grid'
@@ -34,11 +32,13 @@ const Topbar = () => {
             }}>
 
 
+
             <Box gridColumn={0} gridRow={0} display="flex"
                 width={'100%'}
                 alignItems={'end'}
                 justifyContent={'flex-end'}
             >
+                <Typography width='100%' variant="h2" fontWeight="bold">Robot 1</Typography>
                 <IconButton onClick={colorMode.toggleColorMode}>
                     {theme.palette.mode === "dark" ? (
                         <DarkModeOutlined />
@@ -57,37 +57,6 @@ const Topbar = () => {
                 </IconButton>
             </Box>
 
-            <Box gridColumn={0} gridRow={1} display="flex"
-                width={'100%'}
-                alignItems={'end'}
-                justifyContent={'flex-start'}>
-
-            </Box>
-
-
-            <Box
-                gridRow={1}
-                p={1}
-                sx={{
-                    backgroundColor: colors.primary[400],
-                    width: '50%'
-                }}
-                display="flex"
-                borderRadius="3px"
-            >
-                <FiberManualRecord color="error" />
-                <Typography>{latestData?.data}</Typography>
-                <Box
-                    p={1}
-                    sx={{
-                        backgroundColor: colors.primary[400],
-                        width: '25%'
-                    }}
-                    display="flex"
-                    borderRadius="3px">
-                    {latestData && <Typography>{new Date(latestData?.server_timestamp * 1000).toLocaleTimeString()}</Typography>}
-                </Box>
-            </Box>
 
         </Box>
     );
