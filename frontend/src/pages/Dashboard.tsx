@@ -24,8 +24,6 @@ const Dashboard = () => {
     }, []);
 
     async function init() {
-        try { await addConnection(new WebSocketConfig('ws://192.168.0.89:8080/ws1')); }
-        catch (err) { console.log(err); }
         await subscribe(new WebSocketConfig('ws://192.168.0.89:8080/ws1'));
     }
 

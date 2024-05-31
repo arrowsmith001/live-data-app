@@ -2,6 +2,7 @@ import json
 import sys
 import time
 import uuid
+from backend.utils import get_seconds
 import websocket
 import threading
 from math import floor
@@ -14,6 +15,9 @@ from flask.cli import FlaskGroup
 from flask_cors import CORS, cross_origin
 
 # time.sleep(5)
+
+# TODO: Refactor functions outside of app.py
+# TODO: Clean subscriber model
 
 port = 5000
 
@@ -66,14 +70,6 @@ cli = FlaskGroup(app)
 
 # List to store websocket threads
 websocket_threads = []
-
-
-def get_timestamp():
-    return datetime.now(timezone.utc).timestamp()
-
-
-def get_seconds():
-    return floor(get_timestamp())
 
 
 seconds = get_seconds()
@@ -142,22 +138,38 @@ def add_connection():
         "clientIp": client_ip,
         "isPrivate": isPrivate,
         "name": name,
+        "last_received": None,
     }
+
+    connection_changed_event(ws_url, "pending")
 
     # connected_clients[ws_server] = thread
 
-    connect_to_server(ws_server, ws_url)
+    try:
+        connect_to_server(ws_server, ws_url)
+        connection_changed_event(ws_url, "connected")
+    except Exception as e:
+        log("Error connecting to server: " + str(e))
+        connection_changed_event(ws_url, "disconnected")
 
     return ""
+
+
+def connection_changed_event(ws_url, status):
+    global ws_servers
+    ws_servers[ws_url]["status"] = status
+    publish_to_all({"status": status, "ws_url": ws_url}, "connection")
 
 
 def url_to_wsconfig(ws_url):
     if ws_url.startswith("ws://"):
         ws_url = ws_url.replace("ws://", "")
-    ip = ws_url.split(":")[1].replace("//", "")
-    port = ws_url.split(":")[2].split("/")[0]
+    ip = ws_url.split(":")[0]
+    port = ws_url.split(":")[1].split("/")[0]
     # join the rest for endpoint
-    endpoint = "/".join(ws_url.split(":")[2].split("/")[1:])
+    endpoint = "/".join(ws_url.split(":")[1].split("/")[1:])
+    if endpoint == "/":
+        endpoint = ""
     return ip, port, endpoint
 
 
@@ -170,23 +182,34 @@ def wsconfig_to_url(ip_address, port, endpoint):
 @cross_origin()
 def get_connections():
     global ws_servers
-    # copy a dump of ws_Servers minus ws objects
-    return json.dumps(
-        [
+    out = []
+    for ws_url in ws_servers.keys():
+        ip, port, endpoint = url_to_wsconfig(ws_url)
+        out.append(
             {
-                "url": ws_url,
                 "name": ws_servers[ws_url]["name"],
                 "isPrivate": ws_servers[ws_url]["isPrivate"],
+                "ip": ip,
+                "port": port,
+                "endpoint": endpoint,
+                "status": ws_servers[ws_url]["status"],
+                "last_received": ws_servers[ws_url]["last_received"],
             }
-            for ws_url in ws_servers.keys()
-        ]
-    )
+        )
+    # copy a dump of ws_Servers minus ws objects
+    return json.dumps(out)
 
 
 def connect_to_server(ws_server, ws_url):
     ws_server.connect(ws_url)
     thread = threading.Thread(target=read_data, args=(ws_server, ws_url))
     thread.start()
+
+
+def params_to_url(ip, port, endpoint):
+    if endpoint == "":
+        return f"ws://{ip}:{port}"
+    return f"ws://{ip}:{port}/{endpoint}"
 
 
 # Read data continuously from a server, and if a client is subscribed to the source of the data, add it to the client's data list
@@ -199,33 +222,45 @@ def read_data(ws_server, ws_url):
                 try:
                     data = ws_server.recv()
                     time.sleep(0.01)
-                except ConnectionAbortedError:
-                    time.sleep(0.01)
-                    continue
+                except ConnectionAbortedError as e:
+                    log("ConnectionAbortedError: " + str(e))
+                    connection_changed_event(ws_url, "disconnected")
+                    return
+
                 server_timestamp = get_timestamp()
+                ws_servers[ws_url]["last_received"] = server_timestamp
+
                 event = push_event(data, server_timestamp, ws_url)
                 log("DATA_server_timestamp: " + str(server_timestamp))
 
                 # if a client has been registered as interested in the source of this data...
-                for id in ws_client_prefs.keys():
-                    try:
-                        url = (
-                            "ws://"
-                            + ws_client_prefs[id]["params"]["ip"]
-                            + ":"
-                            + str(ws_client_prefs[id]["params"]["port"])
-                            + "/"
-                        ) + ws_client_prefs[id]["params"]["endpoint"]
-
-                        if url == ws_url:
-                            log("DATA_APPENDED: " + str(event["data"]))
-                            ws_client_prefs[id]["events"].append(event)
-                    except:
-                        pass
+                publish_to_subscribers(ws_url, event, "data")
 
     except Exception as e:
         log("Connection closed with controlled exception: " + str(e))
-        del ws_servers[ws_url]
+        connection_changed_event(ws_url, "disconnected")
+
+
+def publish_to_subscribers(ws_url, event, event_type):
+    global ws_client_prefs
+    for client_id in ws_client_prefs.keys():
+        try:
+            params = ws_client_prefs[client_id]["params"]
+            url = params_to_url(params["ip"], params["port"], params["endpoint"])
+
+            if url == ws_url:
+                ws_client_prefs[client_id]["events"].append({event_type: event})
+        except:
+            pass
+
+
+def publish_to_all(event, event_type):
+    global ws_client_prefs
+    for client_id in ws_client_prefs.keys():
+        try:
+            ws_client_prefs[client_id]["events"].append({event_type: event})
+        except:
+            pass
 
 
 # Disconnect from a data server
@@ -250,8 +285,8 @@ def disconnect_from_server():
         ws = ws_servers[ws_url]["ws"]
         ws.close()
         connected_clients[ws].join()  # Wait for the thread to finish
-        del ws_servers[ws]
-        del connected_clients[ws]
+        connection_changed_event(ws_url, "disconnected")
+        # del connected_clients[ws]
         log("Disconnected from " + ws_url)
         return ""
     else:

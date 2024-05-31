@@ -69,7 +69,7 @@ function Home() {
     const onRefreshConnections = async () => {
         // get all connections
         const dataStreams = await getConnections();
-        setDataStreams(dataStreams);
+        // setDataStreams(dataStreams);
     }
 
 

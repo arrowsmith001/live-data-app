@@ -50,6 +50,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         WebSocketService.connect(WS_URL);
 
         const callbackID = WebSocketService.addCallback((message) => {
+
+
             setLatestData(message);
             setDataArray(prev => {
 

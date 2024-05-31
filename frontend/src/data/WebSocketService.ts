@@ -56,8 +56,13 @@ class WebSocketService {
     }
 
     private handleNewMessage(e: any): void {
+        if (e.data) {
+            Object.values(this.callbacks).forEach(callback => callback(e.data));
+        }
+        else if (e.connection) {
+            console.log('CONNECTION EVENT: ' + e.connection);
+        }
         // append to existing data
-        Object.values(this.callbacks).forEach(callback => callback(e));
     }
 
     private reconnect(): void {
