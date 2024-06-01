@@ -1,9 +1,12 @@
 import { IconButton, Box, Typography, CircularProgress, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button, Grid } from "@mui/material";
+import { Delete } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { WebSocketConfig } from "../backlog/WebSocketListener";
-import { ConnectionInfo, addConnection, getConnections } from "../api/ApiFunctions";
+import { ConnectionInfo, addConnection, deleteConnection, getConnections } from "../api/ApiFunctions";
+import { socket } from '../network/socket';
+import { getUrlFromConnectionInfo } from "../utils/utils";
 
 
 const Connections = () => {
@@ -40,6 +43,16 @@ const Connections = () => {
         }
     };
 
+    async function handleDeleteConnection(ci: ConnectionInfo) {
+        setError(null);
+        try {
+            await deleteConnection(getUrlFromConnectionInfo(ci));
+        }
+        catch (error: any) {
+            setError(error.message);
+        }
+    };
+
     useEffect(() => {
         const fetchConnections = async () => {
             try {
@@ -53,7 +66,13 @@ const Connections = () => {
         };
 
         fetchConnections();
+
+        socket.on('connections_changed', (data) => {
+            setConnections(JSON.parse(data).connections);
+        });
+
     }, []);
+
 
 
 
@@ -100,6 +119,7 @@ const Connections = () => {
                                 <TableCell>IP Address</TableCell>
                                 <TableCell>Port</TableCell>
                                 <TableCell>Endpoint</TableCell>
+                                <TableCell></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -109,6 +129,7 @@ const Connections = () => {
                                     <TableCell>{connection.ip}</TableCell>
                                     <TableCell>{connection.port}</TableCell>
                                     <TableCell>{connection.endpoint}</TableCell>
+                                    <TableCell><IconButton onClick={(e: any) => handleDeleteConnection(connection)}><Delete /></IconButton></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

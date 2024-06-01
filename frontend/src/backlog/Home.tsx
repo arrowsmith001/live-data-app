@@ -53,7 +53,7 @@ function Home() {
             name: 'Robot 1',
             isPrivate: false
         }
-        await addConnection(config);
+        // await addConnection(config);
         const config2 = {
             ...new WebSocketConfig({
                 ip: '192.168.0.89',
@@ -63,7 +63,7 @@ function Home() {
             name: 'Robot 2',
             isPrivate: false
         }
-        addConnection(config2);
+        // addConnection(config2);
     }
 
     const onRefreshConnections = async () => {

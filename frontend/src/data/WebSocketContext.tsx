@@ -47,7 +47,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     const [secs, setSecs] = useState<number>(5); // Add state for secs parameter
 
     useEffect(() => {
-        WebSocketService.connect(WS_URL);
+        // WebSocketService.connect(WS_URL);
 
         const callbackID = WebSocketService.addCallback((message) => {
 

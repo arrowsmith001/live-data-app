@@ -38,7 +38,7 @@ const Topbar = () => {
                 alignItems={'end'}
                 justifyContent={'flex-end'}
             >
-                <Typography width='100%' variant="h2" fontWeight="bold">Robot 1</Typography>
+                {/* <Typography width='100%' variant="h2" fontWeight="bold">Robot 1</Typography> */}
                 <IconButton onClick={colorMode.toggleColorMode}>
                     {theme.palette.mode === "dark" ? (
                         <DarkModeOutlined />
