@@ -1,20 +1,22 @@
 import { Box, Button, Card, Grid, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../styles/theme";
-import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import EmailIcon from "@mui/icons-material/Email";
-import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import TrafficIcon from "@mui/icons-material/Traffic";
-import LineChart from "../components/LineChart";
-import Header from "../components/Header";
-import { useContext, useEffect } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { addConnection, subscribe } from "../api/ApiFunctions";
 import { WebSocketConfig } from "../backlog/WebSocketListener";
 import useWebSocket from "react-use-websocket";
 import { ServerDataItem, WebSocketContext } from "../backlog/WebSocketContext";
 import { useSetSecs } from "../backlog/useServer";
 import DashboardGrid from "../app/DashboardGrid";
+import { DashboardContext, DashboardContextProvider } from "../data/DashboardContextProvider";
+import { socket } from "../network/socket";
+import { Add } from "@mui/icons-material";
+import AddViewButton from "../components/AddViewButton";
 
+
+export type DashboardParams = {
+    timeLower?: number;
+    timeUpper?: number;
+}
 
 export type DashboardInfo = {
     id?: number;
@@ -38,13 +40,48 @@ const Dashboards = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    useEffect(() => {
-    }, []);
 
-
-    const setSecs = useSetSecs();
-
-    // TODO: Scope data
+    const dashboard : DashboardInfo = {
+        name: 'Dashboard',
+        dashboardViews: [
+            {
+                name: 'x',
+                type: 'Display',
+                schemaId: 1,
+                connectionId: 1,
+                args: [0],
+                w: 4,
+                h: 200
+            },
+            {
+                name: 'x',
+                type: 'Line',
+                schemaId: 1,
+                connectionId: 1,
+                args: [0, 1],
+                w: 4,
+                h: 200
+            },
+            {
+                name: 'x',
+                type: 'Display',
+                schemaId: 1,
+                connectionId: 1,
+                args: [0, 1],
+                w: 4,
+                h: 200
+            },
+            {
+                name: 'x',
+                type: 'Display',
+                schemaId: 1,
+                connectionId: 1,
+                args: [0, 1],
+                w: 4,
+                h: 200
+            },
+        ]
+    };
 
     return (
         <Grid
@@ -56,55 +93,10 @@ const Dashboards = () => {
         // gridAutoRows="140px"
         // gap="20px"
         >
-            <DashboardGrid
-                views={[
-                    // {
-                    //     name: 'LineChart',
-                    //     type: 'Line',
-                    //     schemaId: 1,
-                    //     connectionId: 1,
-                    //     args: [0, 2],
-                    //     w: 4,
-                    //     h: 200
-                    // },
-                    {
-                        name: 'x',
-                        type: 'Display',
-                        schemaId: 1,
-                        connectionId: 2,
-                        args: [0],
-                        w: 4,
-                        h: 200
-                    },
-                    {
-                        name: 'x',
-                        type: 'Line',
-                        schemaId: 1,
-                        connectionId: 2,
-                        args: [0, 1],
-                        w: 4,
-                        h: 200
-                    },
-                    {
-                        name: 'x',
-                        type: 'Display',
-                        schemaId: 1,
-                        connectionId: 2,
-                        args: [0, 1],
-                        w: 4,
-                        h: 200
-                    },
-                    {
-                        name: 'x',
-                        type: 'Display',
-                        schemaId: 1,
-                        connectionId: 2,
-                        args: [0, 1],
-                        w: 4,
-                        h: 200
-                    },
-                ]}
-            />
+        <DashboardContextProvider dashboard={dashboard} >
+                <DashboardGrid />
+                <AddViewButton />
+        </DashboardContextProvider >
             {/* 
             <Grid height={'200px'} item xs={8}>
                 <LineChart

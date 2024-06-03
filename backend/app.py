@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from flask_socketio import SocketIO, join_room, leave_room
 from model import ConnectionInfo, DataSchema
@@ -6,7 +7,6 @@ from utils import get_seconds, log
 import websocket
 import threading
 from math import floor
-from datetime import UTC, datetime, timezone
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import asc, text, Table
@@ -21,6 +21,7 @@ port = 5000
 db = SQLAlchemy()
 
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     # "postgresql://postgres:password@db:5432/robotdatadb"
     "postgresql://postgres:password@localhost/robotdatadb"

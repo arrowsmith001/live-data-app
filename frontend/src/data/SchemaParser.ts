@@ -2,18 +2,36 @@ import { SchemaInfo, SchemaType } from "../api/ApiFunctions";
 
 
 export class SchemaParser {
+    static parse(data: any, schemaId: number) {
+
+        const schema = SchemaParser.schemas[schemaId];
+        const out = [];
+        for(let i = 0; i < schema.count; i++) {
+            out.push(SchemaParser.parseOne(schema, data, i));
+        }
+        return out;
+    }
+    
+
+    private static schemas: { [id: number]: SchemaInfo } = {};
+
+    static addSchema(schema: SchemaInfo) {
+        if(schema.id) SchemaParser.schemas[schema.id] = schema;
+    }
 
     static parseOne(schema: SchemaInfo, data: any, arg: any) {
 
         const { type, value } = SchemaParser.getTypeAndValue(schema, data, arg);
 
         return SchemaParser.parseValue(value, type);
+
     }
 
     static parseMultiple(schema: SchemaInfo, data: any, args: any[]) {
         const parsed = [];
         for (const arg of args) {
             const { type, value } = SchemaParser.getTypeAndValue(schema, data, arg);
+            console.log('type: ' + type + ', value: ' + value);
             const v = SchemaParser.parseValue(value, type);
             parsed.push(v);
         }

@@ -4,41 +4,21 @@ import { tokens } from "../styles/theme";
 import { useDataArray } from "../backlog/useServer";
 import { ServerDataItem } from "../backlog/WebSocketContext";
 import { socket } from "../network/socket";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { SchemaInfo, getSchema } from "../api/ApiFunctions";
 import { SchemaParser } from "../data/SchemaParser";
+import { Dashboard } from "@mui/icons-material";
+import { DashboardContext } from "../data/DashboardContextProvider";
 
 const LineChart = ({ connectionId, schemaId, args }: { connectionId: number, schemaId: number, args: any[] }) => {
 
+    const { getData } = useContext(DashboardContext);
 
     const eventName = 'connection-' + connectionId;
 
     const [schema, setSchema] = useState<SchemaInfo | undefined>();
     const [latestData, setLatestData] = useState<any[][]>();
 
-    useEffect(() => {
-
-        getSchema(schemaId).then((schema) => {
-            setSchema(schema);
-
-            socket.on(eventName, (data: any) => {
-
-                const parsed = SchemaParser.parseMultiple(schema, data, args);
-                setLatestData((prev) => {
-                    console.log(parsed);
-                    return [...(prev || []), parsed];
-                });
-            });
-        }).catch((error) => {
-            console.error(error);
-        });
-
-
-        return () => {
-            socket.off('connection-' + connectionId);
-        };
-
-    }, []);
 
 
     const theme = useTheme();
@@ -55,7 +35,7 @@ const LineChart = ({ connectionId, schemaId, args }: { connectionId: number, sch
     const plotData = [
         {
             id: '1',
-            data: latestData?.map((d, i) => ({ x: d[0], y: d[1] })) || []
+            data: getData(connectionId, schemaId).map((d, i) => ({ x: d[0], y: d[1] })) || []
         }
     ];
 

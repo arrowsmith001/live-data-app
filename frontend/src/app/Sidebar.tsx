@@ -136,6 +136,7 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
                             selected={selected}
                             setSelected={setSelected}
                         />
+                        
                         <Item
                             title="Schemas"
                             to="/schemas"

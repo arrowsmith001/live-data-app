@@ -1,60 +1,104 @@
-import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { socket } from '../network/socket';
+import { DashboardInfo, DashboardParams } from '../pages/Dashboards';
+import { SchemaParser } from './SchemaParser';
+import { getSchemas } from '../api/ApiFunctions';
 
-
-
-
-interface DecodedDataProviderProps {
+interface DashboardContextProviderProps {
     children: ReactNode;
+    dashboard: DashboardInfo;
 }
 
-
-
-interface DecodedDataContextType {
-    decodedData?: any;
+interface DashboardContextType {
+    getData: (connectionId: number, schemaId: number) => any[];
+    setDashboardParams: React.Dispatch<React.SetStateAction<DashboardParams>>;
+    dashboard: DashboardInfo | null;
 }
 
-// TODO:::::::::
+export const DashboardContext: React.Context<DashboardContextType> = createContext<DashboardContextType>({
+    getData: (connectionId: number, schemaId: number) => [],
+    setDashboardParams: () => {},
+    dashboard: null
+});
 
-// Create a context to store the decoded data
-export const DecodedDataContext: React.Context<DecodedDataContextType> = createContext<DecodedDataContextType>({});
+export const DashboardContextProvider: React.FC<DashboardContextProviderProps> = ({ children, dashboard }) => {
+
+    const [dashboardParams, setDashboardParams] = useState<DashboardParams>({});
+    const [data, setData] = useState<{ [key: string]: any[] }>({});
+
+    const getData = (connectionId: number, schemaId: number) => {
+        return data[connectionId + '-' + schemaId] || [];
+    };
 
 
-// Create a provider component that listens to the socket streams and decodes the data
-export const DecodedDataProvider: React.FC<DecodedDataProviderProps> = ({ children }) => {
+    const dataCombos = useMemo(() => {
+        if(dashboard === null) return new Map<number, number[]>([]);
+        let dataCombos = new Map<number, number[]>();
+        for (const view of dashboard.dashboardViews) {
+            if (dataCombos.has(view.connectionId)) {
+                if (!dataCombos.get(view.connectionId)?.includes(view.schemaId)) {
+                    dataCombos.get(view.connectionId)?.push(view.schemaId);
+                }
+            } else {
+                dataCombos.set(view.connectionId, [view.schemaId]);
+            }
+        }
+        return dataCombos;
+    }, [dashboard]);
 
-
-    const [decodedData, setDecodedData] = useState(null);
-    const [expiryTime, setSecs] = useState<number>(5); // Add state for secs parameter
+    const sp: SchemaParser = new SchemaParser();
 
     useEffect(() => {
-        // Subscribe to the socket streams
-        socket.on('connections_changed', (data) => {
+        console.log('dataCombos: ' + dataCombos.size);
 
-            // const decoded = decodeData(data);
-            // setDecodedData(decoded);
-
-            // // Set a timeout to forget the data after expiryTime milliseconds
-            // const timeoutId = setTimeout(() => {
-            //     setDecodedData({});
-            // }, expiryTime);
-
-            // Clean up the timeout when the component is unmounted or expiryTime changes
-            return () => {
-                socket.off('connections_changed');
+        // fetch schemas
+        // for each schema, create a parser
+        getSchemas().then((schemas) => {
+            for (const schema of schemas) {
+                SchemaParser.addSchema(schema);
             }
         });
 
+        // iterate through keys and subscribe to connectionIds
+        for (const connectionId of Array.from(dataCombos.keys())) {
+            for (const schemaId of dataCombos.get(connectionId)!) {
+                console.log('subscribing to connection-' + connectionId + ' schema-' + schemaId);
+                socket.on('connection-' + connectionId, (data) => {
+                    const decoded = SchemaParser.parse(data, schemaId);
+
+                    console.log(connectionId + ' - ' + schemaId + ' - ' + decoded);
+
+                    setData((prevData) => {
+                        // append data at key
+                        const key = connectionId + '-' + schemaId;
+                        const prevDataArray = prevData[key] || [];
+                        const newData = [...prevDataArray, decoded];
+                        const d = { ...prevData, [key]: newData };
+                        //console.log(d);
+                        return d;
+                    });
+                });
+            }
+        }
+
+        socket.on('connections_changed', (data) => {
+            console.log('connections_changed!');
+            // handle connections changed event
+        });
+
         // Clean up the effect
-        return () => { socket.disconnect(); }
-    }, [expiryTime]);
-
-
+        return () => {
+            for (const connectionId of Array.from(dataCombos.keys())) {
+                    socket.off('connection-' + connectionId);
+                
+            }
+        };
+    }, [dashboard, dashboardParams, dataCombos]);
 
     return (
-        <DecodedDataContext.Provider value={{ decodedData }}>
+        <DashboardContext.Provider value={{ getData, setDashboardParams, dashboard }}>
             {children}
-        </DecodedDataContext.Provider>
+        </DashboardContext.Provider>
     );
 };
 
@@ -62,6 +106,6 @@ export const DecodedDataProvider: React.FC<DecodedDataProviderProps> = ({ childr
 
 
 // Create a hook to access the decoded data
-const useDecodedData = () => useContext(DecodedDataContext);
+const useDecodedData = () => useContext(DashboardContext);
 
 export { useDecodedData };
