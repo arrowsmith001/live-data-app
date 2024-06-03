@@ -8,9 +8,9 @@ interface WebSocketProviderProps {
 }
 
 interface WebSocketContextType {
-    latestData: ServerDataItem | null;
-    dataArray: ServerDataItem[];
-    setSecs: (secs: number) => void;
+    latestData?: ServerDataItem | null;
+    dataArray?: ServerDataItem[];
+    setSecs?: (secs: number) => void;
 }
 
 export type ServerDataItem = {
@@ -39,7 +39,7 @@ export class ServerData {
 
 }
 
-export const WebSocketContext: React.Context<WebSocketContextType | null> = createContext<WebSocketContextType | null>(null);
+export const WebSocketContext: React.Context<WebSocketContextType> = createContext<WebSocketContextType>({});
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
 
     const [latestData, setLatestData] = useState<ServerDataItem | null>(null);
@@ -55,7 +55,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             setLatestData(message);
             setDataArray(prev => {
 
-                // truncate to last X seconds
                 const cutoff = (message.server_timestamp - secs);
                 var i = 0;
                 while (i < prev.length && prev[i].server_timestamp < cutoff) {

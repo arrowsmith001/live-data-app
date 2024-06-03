@@ -1,19 +1,49 @@
 import { Line, ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../styles/theme";
-import { useDataArray } from "../data/useServer";
-import { ServerDataItem } from "../data/WebSocketContext";
+import { useDataArray } from "../backlog/useServer";
+import { ServerDataItem } from "../backlog/WebSocketContext";
+import { socket } from "../network/socket";
+import { useEffect, useState } from "react";
+import { SchemaInfo, getSchema } from "../api/ApiFunctions";
+import { SchemaParser } from "../data/SchemaParser";
 
-const LineChart = ({ xSelect, dataSelect }: { xSelect: (sdi: ServerDataItem) => number, dataSelect: ((s: string) => number)[] }) => {
+const LineChart = ({ connectionId, schemaId, args }: { connectionId: number, schemaId: number, args: any[] }) => {
 
 
-    const isDashboard = true;
+    const eventName = 'connection-' + connectionId;
+
+    const [schema, setSchema] = useState<SchemaInfo | undefined>();
+    const [latestData, setLatestData] = useState<any[][]>();
+
+    useEffect(() => {
+
+        getSchema(schemaId).then((schema) => {
+            setSchema(schema);
+
+            socket.on(eventName, (data: any) => {
+
+                const parsed = SchemaParser.parseMultiple(schema, data, args);
+                setLatestData((prev) => {
+                    console.log(parsed);
+                    return [...(prev || []), parsed];
+                });
+            });
+        }).catch((error) => {
+            console.error(error);
+        });
+
+
+        return () => {
+            socket.off('connection-' + connectionId);
+        };
+
+    }, []);
 
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const data = useDataArray();
 
     // limit data to 100 items
 
@@ -22,38 +52,45 @@ const LineChart = ({ xSelect, dataSelect }: { xSelect: (sdi: ServerDataItem) => 
     //if (data.length > 0) console.log(data[data.length - 1].server_timestamp);
 
 
-    const plotData = dataSelect.map((sd) => ({
-        id: "Robot " + sd.toString(),
-        color: tokens("dark").greenAccent[500],
-        data: data.map((d) => {
-            return {
-                x: xSelect(d),
-                y: sd(d.data)
-            };
-        })
-    }));
+    const plotData = [
+        {
+            id: '1',
+            data: latestData?.map((d, i) => ({ x: d[0], y: d[1] })) || []
+        }
+    ];
 
-    const renderTick = (props: any) => {
-        const { x, y, format, value } = props;
+    // dataSelect.map((sd) => ({
+    //     id: "Robot " + sd.toString(),
+    //     color: tokens("dark").greenAccent[500],
+    //     data: data.map((d) => {
+    //         return {
+    //             x: xSelect(d),
+    //             y: sd(d.data)
+    //         };
+    //     })
+    // }));
 
-        if (props.tickIndex === 0 || props.tickIndex >= data.length - 1) return (
-            <g style={{ width: '500px' }}>
-                <g transform={`translate(${x},${y})`}>
-                    <text
-                        x={0}
-                        y={0}
-                        dy={16}
-                        textAnchor="center"
-                        fill={colors.grey[100]}
-                        fontSize={12}
-                    >
-                        {format!(data[0].server_timestamp)}
-                    </text>
-                </g>
-            </g>
-        );
-        return <></>;
-    };
+    // const renderTick = (props: any) => {
+    //     const { x, y, format, value } = props;
+
+    //     if (props.tickIndex === 0 || props.tickIndex >= data.length - 1) return (
+    //         <g style={{ width: '500px' }}>
+    //             <g transform={`translate(${x},${y})`}>
+    //                 <text
+    //                     x={0}
+    //                     y={0}
+    //                     dy={16}
+    //                     textAnchor="center"
+    //                     fill={colors.grey[100]}
+    //                     fontSize={12}
+    //                 >
+    //                     {format!(data[0].server_timestamp)}
+    //                 </text>
+    //             </g>
+    //         </g>
+    //     );
+    //     return <></>;
+    // };
 
     return (
         <ResponsiveLine
@@ -113,7 +150,7 @@ const LineChart = ({ xSelect, dataSelect }: { xSelect: (sdi: ServerDataItem) => 
                 renderTick: (props) => <></>,
 
                 tickRotation: 0,
-                legend: isDashboard ? undefined : "transportation", // added
+                legend: undefined, // added
                 legendOffset: 36,
                 legendPosition: "middle",
             }}
@@ -122,7 +159,7 @@ const LineChart = ({ xSelect, dataSelect }: { xSelect: (sdi: ServerDataItem) => 
                 tickSize: 3,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: isDashboard ? undefined : "count", // added
+                legend: undefined, // added
                 legendOffset: -40,
                 legendPosition: "middle",
             }}

@@ -55,7 +55,7 @@ export function MainDrawer({ ...props }: MainDrawerProps) {
             {dataStreams.map((dataStream, index) => {
 
                 return (
-                    <ListItem button onClick={() => subscribe(new WebSocketConfig(dataStream.url))} key={index}>
+                    <ListItem button key={index}>
                         <ConnectionStatusDot />
                         <ListItemText primary={dataStream.name} secondary={dataStream.url} />
                         <Settings></Settings>

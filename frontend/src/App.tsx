@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Topbar from "./app/Topbar";
 import Sidebar from "./app/Sidebar";
-import Dashboard from "./pages/Dashboard";
 import { CssBaseline, Theme, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./styles/theme";
-import { WebSocketProvider } from "./data/WebSocketContext";
+import { WebSocketProvider } from "./backlog/WebSocketContext";
 import Connections from "./pages/Connections";
 import Schemas from "./pages/Schemas";
+import Dashboards from "./pages/Dashboards";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -24,7 +24,7 @@ function App() {
               <main className="content">
                 <Topbar />
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Dashboards />} />
                   <Route path="/connections" element={<Connections />} />
                   <Route path="/schemas" element={<Schemas />} />
                 </Routes>

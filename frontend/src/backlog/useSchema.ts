@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { DataSchema, DataType } from '../backlog/DataReader';
+import { DataSchema, DataType } from './DataReader';
 
 export const useSchema = () => {
     return {

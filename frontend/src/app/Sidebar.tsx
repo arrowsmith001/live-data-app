@@ -3,7 +3,7 @@ import { Sidebar as ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { tokens } from "../styles/theme";
-import { Add, BarChartOutlined, CalendarViewDayOutlined, ContactsOutlined, Delete, Edit, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined, Schema, SettingsInputAntenna } from "@mui/icons-material";
+import { Add, BarChartOutlined, CalendarViewDayOutlined, ContactsOutlined, Dashboard, Delete, Edit, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined, Schema, SettingsInputAntenna } from "@mui/icons-material";
 // import "react-pro-sidebar/dist/styles";
 
 type ItemArgs = {
@@ -121,9 +121,9 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
 
 
                         <Item
-                            title="Dashboard"
+                            title="Dashboards"
                             to="/"
-                            icon={<HomeOutlined />}
+                            icon={<Dashboard />}
                             selected={selected}
                             setSelected={setSelected}
                         />
@@ -138,7 +138,7 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
                         />
                         <Item
                             title="Schemas"
-                            to="/schema"
+                            to="/schemas"
                             icon={<Schema />}
                             selected={selected}
                             setSelected={setSelected}

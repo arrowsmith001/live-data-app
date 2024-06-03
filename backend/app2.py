@@ -30,21 +30,21 @@ def log(msg):
     return
 
 
-class Event(db.Model):
-    __tablename__ = "event"
+# class Event(db.Model):
+#     __tablename__ = "event"
 
-    id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.String(120), nullable=False)
-    server_timestamp = db.Column(db.Float, nullable=False)
-    origin = db.Column(db.String(120), nullable=False)
+#     id = db.Column(db.Integer, primary_key=True)
+#     data = db.Column(db.String(120), nullable=False)
+#     server_timestamp = db.Column(db.Float, nullable=False)
+#     origin = db.Column(db.String(120), nullable=False)
 
-    def __repr__(self):
-        return f"Event {self.id} {self.data} {self.server_timestamp} {self.origin}"
+#     def __repr__(self):
+#         return f"Event {self.id} {self.data} {self.server_timestamp} {self.origin}"
 
-    def __init__(self, data, server_timestamp, origin):
-        self.data = data
-        self.server_timestamp = server_timestamp
-        self.origin = origin
+#     def __init__(self, data, server_timestamp, origin):
+#         self.data = data
+#         self.server_timestamp = server_timestamp
+#         self.origin = origin
 
 
 app = Flask(__name__)

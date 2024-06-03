@@ -7,38 +7,48 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import LineChart from "../components/LineChart";
 import Header from "../components/Header";
-import DashboardHeader from "../app/DashboardHeader";
 import { useContext, useEffect } from "react";
 import { addConnection, subscribe } from "../api/ApiFunctions";
 import { WebSocketConfig } from "../backlog/WebSocketListener";
 import useWebSocket from "react-use-websocket";
-import { ServerDataItem, WebSocketContext } from "../data/WebSocketContext";
-import { useSetSecs } from "../data/useServer";
+import { ServerDataItem, WebSocketContext } from "../backlog/WebSocketContext";
+import { useSetSecs } from "../backlog/useServer";
+import DashboardGrid from "../app/DashboardGrid";
 
-const Dashboard = () => {
+
+export type DashboardInfo = {
+    id?: number;
+    name: string;
+    dashboardViews: DashboardViewInfo[];
+}
+
+export type DashboardViewType = 'Line' | 'Bar' | 'Display' | 'Pose';
+
+export type DashboardViewInfo = {
+    type: DashboardViewType,
+    name: string;
+    schemaId: number;
+    connectionId: number;
+    args: any[];
+    w: number;
+    h: number;
+}
+
+const Dashboards = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
     useEffect(() => {
-        init();
     }, []);
 
-    async function init() {
-        await subscribe(new WebSocketConfig('ws://192.168.0.89:8080/ws1'));
-    }
 
     const setSecs = useSetSecs();
 
-
-    const selectServerT = (sdi: ServerDataItem) => parseFloat(sdi.data.split(' ')[0]);
-
-    const selectT = (sdi: ServerDataItem) => sdi.server_timestamp;
-    const selectX = (s: string) => parseFloat(s.split(' ')[1]);
-    const selectY = (s: string) => parseFloat(s.split(' ')[2]);
-    const selectTheta = (s: string) => parseFloat(s.split(' ')[3]);
+    // TODO: Scope data
 
     return (
         <Grid
+            width={'100%'}
             padding={6}
             container spacing={2}
             display="grid"
@@ -46,10 +56,56 @@ const Dashboard = () => {
         // gridAutoRows="140px"
         // gap="20px"
         >
-            <Grid xs={11} item>
-                <DashboardHeader />
-            </Grid>
-
+            <DashboardGrid
+                views={[
+                    // {
+                    //     name: 'LineChart',
+                    //     type: 'Line',
+                    //     schemaId: 1,
+                    //     connectionId: 1,
+                    //     args: [0, 2],
+                    //     w: 4,
+                    //     h: 200
+                    // },
+                    {
+                        name: 'x',
+                        type: 'Display',
+                        schemaId: 1,
+                        connectionId: 2,
+                        args: [0],
+                        w: 4,
+                        h: 200
+                    },
+                    {
+                        name: 'x',
+                        type: 'Line',
+                        schemaId: 1,
+                        connectionId: 2,
+                        args: [0, 1],
+                        w: 4,
+                        h: 200
+                    },
+                    {
+                        name: 'x',
+                        type: 'Display',
+                        schemaId: 1,
+                        connectionId: 2,
+                        args: [0, 1],
+                        w: 4,
+                        h: 200
+                    },
+                    {
+                        name: 'x',
+                        type: 'Display',
+                        schemaId: 1,
+                        connectionId: 2,
+                        args: [0, 1],
+                        w: 4,
+                        h: 200
+                    },
+                ]}
+            />
+            {/* 
             <Grid height={'200px'} item xs={8}>
                 <LineChart
                     xSelect={selectServerT}
@@ -73,7 +129,7 @@ const Dashboard = () => {
                     dataSelect={[
                         selectY
                     ]} />
-            </Grid>
+            </Grid> */}
 
             {/* <Grid color={colors.primary['400']} item xs={4} >
                 <Card sx={{ height: '200px' }}></Card></Grid>
@@ -88,4 +144,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Dashboards;

@@ -43,10 +43,10 @@ const Connections = () => {
         }
     };
 
-    async function handleDeleteConnection(ci: ConnectionInfo) {
+    async function handleDeleteConnection(id: any) {
         setError(null);
         try {
-            await deleteConnection(getUrlFromConnectionInfo(ci));
+            await deleteConnection(id);
         }
         catch (error: any) {
             setError(error.message);
@@ -68,7 +68,7 @@ const Connections = () => {
         fetchConnections();
 
         socket.on('connections_changed', (data) => {
-            setConnections(JSON.parse(data).connections);
+            setConnections(JSON.parse(data));
         });
 
     }, []);
@@ -124,12 +124,12 @@ const Connections = () => {
                         </TableHead>
                         <TableBody>
                             {connections.map((connection: ConnectionInfo) => (
-                                <TableRow>
+                                <TableRow key={connection.id}>
                                     <TableCell>{connection.name}</TableCell>
                                     <TableCell>{connection.ip}</TableCell>
                                     <TableCell>{connection.port}</TableCell>
                                     <TableCell>{connection.endpoint}</TableCell>
-                                    <TableCell><IconButton onClick={(e: any) => handleDeleteConnection(connection)}><Delete /></IconButton></TableCell>
+                                    <TableCell><IconButton onClick={(e: any) => handleDeleteConnection(connection.id)}><Delete /></IconButton></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
