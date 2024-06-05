@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
-import { SchemaInfo } from "../api/ApiFunctions";
 import { useEffect, useState } from "react";
+import { SchemaInfo } from "../api/model";
 
 
 

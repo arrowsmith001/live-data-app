@@ -18,6 +18,7 @@ const Topbar = () => {
             gridTemplateColumns="repeat(12, 1fr)"
             gridAutoRows="140px"
             gap="20px"
+            width={'100%'}
             p={2}
             sx={{
                 // backgroundColor: colors.primary[400],

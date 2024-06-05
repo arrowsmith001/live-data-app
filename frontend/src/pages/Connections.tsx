@@ -4,9 +4,10 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { WebSocketConfig } from "../backlog/WebSocketListener";
-import { ConnectionInfo, addConnection, deleteConnection, getConnections } from "../api/ApiFunctions";
 import { socket } from '../network/socket';
 import { getUrlFromConnectionInfo } from "../utils/utils";
+import { addConnection, deleteConnection, getConnections } from "../api/ApiFunctions";
+import { ConnectionInfo } from "../api/model";
 
 
 const Connections = () => {

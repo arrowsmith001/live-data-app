@@ -1,40 +1,60 @@
+import { ThemeProvider, Theme } from "@emotion/react";
+import { Container, CssBaseline } from "@mui/material";
 import { useState } from "react";
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Topbar from "./app/Topbar";
-import Sidebar from "./app/Sidebar";
-import { CssBaseline, Theme, ThemeProvider } from "@mui/material";
-import { ColorModeContext, useMode } from "./styles/theme";
 import { WebSocketProvider } from "./backlog/WebSocketContext";
 import Connections from "./pages/Connections";
-import Schemas from "./pages/Schemas";
+import Content from "./pages/Content";
 import Dashboards from "./pages/Dashboards";
+import Schemas from "./pages/Schemas";
+import { useMode, ColorModeContext } from "./styles/theme";
+import Sidebar from "./app/Sidebar";
+import BrowseDashboards from "./pages/BrowseDashboards";
+import AddDashboard from "./pages/AddDashboard";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { DataContext, DataContextProvider } from "./data/DataContextProvider";
 
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(350); // Set the initial sidebar width here
 
   return (
     <ColorModeContext.Provider value={colorMode as { toggleColorMode: () => void; }}>
       <ThemeProvider theme={theme as Theme}>
+        <DndProvider backend={HTML5Backend}>
         <CssBaseline />
-        <WebSocketProvider>
+        <DataContextProvider>
           <BrowserRouter>
             <div className="app">
-              <Sidebar />
-              <main className="content">
+              <Sidebar width={sidebarWidth} />
+                <Container disableGutters
+                 sx={{height: 'calc(100vh - 64px)', width: '100%'}}>
+
                 <Topbar />
+
                 <Routes>
-                  <Route path="/" element={<Dashboards />} />
-                  <Route path="/connections" element={<Connections />} />
-                  <Route path="/schemas" element={<Schemas />} />
+                  <Route path="dashboards" element={<Dashboards />}>
+                    <Route index element={<BrowseDashboards />} />
+          <Route path="add" element={<AddDashboard/>} />
+
+                  </Route>
+                  <Route path="connections" element={<Connections />} />
+                  <Route path="schemas" element={<Schemas />} />
                 </Routes>
-              </main>
+                
+</Container>
+{/* <Sidebar width={sidebarWidth} /> */}
             </div>
           </BrowserRouter>
-        </WebSocketProvider>
+          </DataContextProvider>
+          </DndProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
 }
+
 
 export default App;

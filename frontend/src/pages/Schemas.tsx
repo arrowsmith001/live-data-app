@@ -2,21 +2,17 @@ import { Schema } from "inspector";
 import React, { useEffect, useState } from "react";
 import { types } from "util";
 import { format } from "path";
-import { SchemaFormat, SchemaInfo, SchemaType, addSchema, deleteSchema, getSchemas } from "../api/ApiFunctions";
 import {
     Box,
     Button,
     Card,
     CircularProgress,
-    Container,
-    FormControl,
+    
     IconButton,
-    InputLabel,
-    ListItem,
+    
     MenuItem,
     Select,
-    SelectChangeEvent,
-    TableContainer,
+    
     TextField,
     Typography,
 } from "@mui/material";
@@ -24,6 +20,8 @@ import { socket } from "../network/socket";
 import { Delete } from "@mui/icons-material";
 import SchemaPreview from "../components/SchemaPreview";
 import SchemaItem from "../components/SchemaItem";
+import { getSchemas, addSchema, deleteSchema } from "../api/ApiFunctions";
+import { SchemaInfo, SchemaType } from "../api/model";
 
 
 const Schemas = () => {

@@ -1,5 +1,5 @@
 import { Card } from "@mui/material";
-import { SchemaFormat, SchemaType } from "../api/ApiFunctions";
+import { SchemaType } from "../api/model";
 
 
 const SchemaItem = ({ label, type }: { label: string, type: SchemaType }) => {

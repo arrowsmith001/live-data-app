@@ -1,30 +1,10 @@
 import axios from "axios";
 import { socket } from '../network/socket';
 import { types } from "util";
+import { ConnectionInfo, DashboardInfo, SchemaInfo } from "./model";
 
 export const API_URL = 'http://localhost:5000';
 
-
-export type ConnectionInfo = {
-    id?: number;
-    name: string;
-    ip: string;
-    port: number;
-    endpoint: string;
-}
-
-export type SchemaType = 'float' | 'integer' | 'string' | 'boolean' | 'timestamp';
-export type SchemaFormat = 'delimited' | 'json';
-
-export type SchemaInfo = {
-    id?: number;
-    count: number;
-    name: string;
-    labels: string[];
-    types: SchemaType[];
-    format: SchemaFormat;
-    delimiter?: string;
-}
 
 
 export async function addConnection(connectionInfo: ConnectionInfo): Promise<void> {
@@ -89,4 +69,10 @@ export async function deleteConnection(id: any): Promise<void> {
 export async function subscribe(): Promise<void> {
 
     //socket.emit('subscribe', connectionInfo);
+}
+
+export async function getDashboards(): Promise<DashboardInfo[]> {
+    const url = `${API_URL}/dashboards`;
+    const response = await axios.get(url);
+    return response.data;
 }

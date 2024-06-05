@@ -1,4 +1,4 @@
-import { SchemaInfo, SchemaType } from "../api/ApiFunctions";
+import { SchemaInfo, SchemaType } from "../api/model";
 
 
 export class SchemaParser {

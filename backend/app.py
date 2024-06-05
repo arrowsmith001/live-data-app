@@ -117,6 +117,34 @@ class Schema(db.Model):
             "format": self.format,
             "delimiter": self.delimiter,
         }
+    
+class Dashboard(db.Model):
+    __tablename__ = "dashboard"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(120), nullable=False)
+    version = db.Column(db.String(120), nullable=False)
+    streams = db.Column(ARRAY(db.String), nullable=False)
+    views = db.Column(ARRAY(db.String), nullable=False)
+
+    def __repr__(self):
+        return f"Dashboard {self.name} {self.version} {self.dataStreams} {self.views}"
+    
+    def __init__(self, data):
+        self.name = data["name"]
+        self.version = data["version"]
+        self.dataStreams = data["streams"]
+        self.views = data["views"]
+
+    def get_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "version": self.version,
+            "streams": [[s[0], s[1]] for s in self.streams.split(",")],
+            "views": json.loads(self.views)
+        }
 
 
 # Database setup
@@ -261,6 +289,10 @@ def get_connections():
 def get_schemas():
     return getSchemasJson()
 
+@app.route("/dashboards", methods=["GET"])
+def get_dashboards():
+    return getDashboardsJson()
+
 
 def getConnectionsJson():
     return json.dumps([c.get_dict() for c in db.session.query(Connection).all()])
@@ -268,6 +300,9 @@ def getConnectionsJson():
 
 def getSchemasJson():
     return json.dumps([s.get_dict() for s in db.session.query(Schema).all()])
+
+def getDashboardsJson():
+    return json.dumps([d.get_dict() for sd in db.session.query(Dashboard).all()])
 
 
 if __name__ == "__main__":

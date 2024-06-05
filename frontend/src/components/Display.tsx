@@ -1,11 +1,16 @@
 import { useContext, useEffect, useState } from "react";
 import { socket } from "../network/socket";
-import { SchemaInfo, getSchema, getSchemas } from "../api/ApiFunctions";
 import { SchemaParser } from "../data/SchemaParser";
 import { Box } from "@mui/material";
 import { DashboardContext } from "../data/DashboardContextProvider";
 
-const Display = ({ connectionId, schemaId, args }: { connectionId: number, schemaId: number, args: any[] }) => {
+export type DataViewProps = {
+    connectionId?: number,
+    schemaId?: number,
+    args: any[][]
+}
+
+const Display = ({ connectionId, schemaId, args }: DataViewProps ) => {
 
     const { getData } = useContext(DashboardContext);
 

@@ -5,12 +5,12 @@ import { useDataArray } from "../backlog/useServer";
 import { ServerDataItem } from "../backlog/WebSocketContext";
 import { socket } from "../network/socket";
 import { useContext, useEffect, useState } from "react";
-import { SchemaInfo, getSchema } from "../api/ApiFunctions";
 import { SchemaParser } from "../data/SchemaParser";
 import { Dashboard } from "@mui/icons-material";
 import { DashboardContext } from "../data/DashboardContextProvider";
+import { SchemaInfo } from "../api/model";
 
-const LineChart = ({ connectionId, schemaId, args }: { connectionId: number, schemaId: number, args: any[] }) => {
+const LineChart = ({ connectionId, schemaId, args }: { connectionId?: number, schemaId?: number, args: any[] }) => {
 
     const { getData } = useContext(DashboardContext);
 

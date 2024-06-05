@@ -34,7 +34,7 @@ const Item = ({ title, to, icon, selected, setSelected }: ItemArgs) => {
     );
 };
 
-const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
+const Sidebar = ({ width }: { width: number  }) => {
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -48,7 +48,7 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
                 rootStyles={{
                     height: '100vh',
                 }}
-                width="350px"
+                width={width + "px"}
 
                 backgroundColor={colors.primary[400]}
                 collapsed={isCollapsed}>
@@ -122,7 +122,7 @@ const Sidebar = ({ isSidebar }: { isSidebar?: boolean }) => {
 
                         <Item
                             title="Dashboards"
-                            to="/"
+                            to="/dashboards"
                             icon={<Dashboard />}
                             selected={selected}
                             setSelected={setSelected}
