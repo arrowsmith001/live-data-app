@@ -21,10 +21,7 @@ export type DashboardParams = {
 }
 
 const Dashboards = () => {
-    return (
-       <Box sx={{height: '100%', width: '100%'}} >
-              <Outlet />
-        </Box>
+    return ( <Outlet />
     )
 }
 

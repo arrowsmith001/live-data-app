@@ -5,7 +5,6 @@ import { ResizableGridItem } from "../components/ResizableGridItem";
 import LineChart from "../components/LineChart";
 import Display from "../components/Display";
 import { DashboardContext } from "../data/DashboardContextProvider";
-import { DataViewType } from "../components/AddDataViewPanel";
 import { Cancel, Schema, Settings, SettingsInputAntenna } from "@mui/icons-material";
 import { DashboardViewInfo } from "../api/model";
 import { DataContext } from "../data/DataContextProvider";
@@ -56,8 +55,8 @@ export const DataView = ({ index, handleResize }: { index: number; handleResize:
 
             <Paper sx={{ backgroundColor: colors.primary[400], color: colors.grey[100], padding: 2, height: '100%' }}>
                 {view.name}
-                {view.type === DataViewType.Line && <LineChart connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
-                {view.type === DataViewType.Display && <Display connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
+                {view.type === 'line' && <LineChart connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
+                {view.type === 'display' && <Display connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
             </Paper>
         </ResizableGridItem>
 

@@ -4,7 +4,6 @@ import { SchemaParser } from './SchemaParser';
 import { getConnections, getDashboards, getSchemas } from '../api/ApiFunctions';
 import { ConnectionInfo, DashboardInfo, SchemaInfo } from '../api/model';
 import { DashboardParams } from '../pages/Dashboards';
-import { DataViewType } from '../components/AddDataViewPanel';
 import { set } from 'date-fns';
 
 interface DataContextProviderProps {
@@ -47,7 +46,9 @@ export const DataContextProvider: React.FC<DataContextProviderProps> = ({ childr
 
 
         socket.on('connections_changed', (data) => {
-            setConnections(data);
+            getConnections().then((connections) => {
+                setConnections(new Map(connections.map((c) => [c.id, c])));
+            });
         });
 
         // // Clean up the effect

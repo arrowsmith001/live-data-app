@@ -11,6 +11,10 @@ import AddDataViewPanel from '../components/AddDataViewPanel';
 import { useDrop } from 'react-dnd';
 import EditViewPanel from '../components/EditViewPanel';
 import { Transition } from 'react-transition-group';
+import { rgba } from 'polished';
+import Sidebar from '../app/Sidebar';
+import ViewConfigurationSidebar from '../components/ViewConfgurationSidebar';
+import { columnStyle, rowStyle } from '../styles/styles';
 
 const AddDashboard = () => {
 
@@ -51,103 +55,90 @@ const AddDashboard = () => {
         isEditable={isEditable} 
         editingView={editingView} setEditingView={setEditingView} >
 
-            <Box
-                sx={{
-                    height: '100%',
-                    width: '100%',
-                    padding: 1,
-                    justifyContent:'center',
-                    display:'flex',
-                    alignItems:'end'
-                }}>
+            <Box sx={{...rowStyle}}>
 
-            <Box
-                position={'fixed'}
-                right={0}
-                bottom={100}
-                zIndex={1}
-                sx={{
-                    backgroundColor: colors.primary[400],
-                    opacity: 0.5,
-                    height: 'calc(100% - 200px)'
-                } }>         
-                <Transition in={!editingView.isEditing} timeout={100} mountOnEnter unmountOnExit>
-                       {(state) => {
-                           console.log('STATE: ' + state);
-                           return (
-                               <Box
-                                   position={'fixed'}
-                                   right={0}
-                                   bottom={100}
-                                   zIndex={1}
-                                   sx={{
-                                       backgroundColor: colors.primary[400],
-                                       opacity: 0.5,
-                                       height: 'calc(100% - 200px)',
-                                       transition: 'transform 0.3s ease-in-out',
-                                       transform: state === 'entered' ? 'translateX(0)' : 'translateX(100%)',
-                                   }}
-                               >
-                                   {<AddDataViewPanel/>}
-                               </Box>
-                           );
-                       }}
-                   </Transition>    
-                     <Transition in={editingView.isEditing} timeout={100} mountOnEnter unmountOnExit>
-                            {(state) => {
-                                console.log('STATE: ' + state);
-                                const isEditPanel = state === 'entered' || state === 'exiting';
+                {/* <Box
+                    zIndex={1}
+                    sx={{
+                        height: 'calc(100% - 200px)'
+                    } }>         
 
-                                const isAddPanel = state === 'exited' || state === 'entering';
+                    <Transition in={!editingView.isEditing} timeout={100} mountOnEnter unmountOnExit>
+                        {(state) => {
 
-                                const panelTransform = isAddPanel ? 'translateX(0)' : 'translateX(100%)';
+                            return (
+                                <Box
+                                    position={'fixed'}
+                                    right={0}
+                                    bottom={100}
+                                    zIndex={1}
+                                    sx={{
+                                        backgroundColor: rgba(colors.primary[400], 0.5),
+                                        height: 'calc(100% - 200px)',
+                                        transition: 'transform 0.1s ease-in-out',
+                                        transform: state === 'entered' ? 'translateX(0)' : 'translateX(100%)',
+                                    }}
+                                >
+                                    {<AddDataViewPanel orientation='vertical'/>}
+                                </Box>
+                            );
+                        }}
 
-                                return (
-                                    <Box
-                                        position={'fixed'}
-                                        right={0}
-                                        bottom={100}
-                                        zIndex={1}
-                                        sx={{
-                                            backgroundColor: colors.primary[400],
-                                            opacity: 0.5,
-                                            height: 'calc(100% - 200px)',
-                                            transition: 'transform 0.3s ease-in-out',
-                                            transform: state === 'entered' ? 'translateX(0)' : 'translateX(100%)',
-                                        }}
-                                    >
-                                        {<EditViewPanel index={editingView.viewIndex!}/>}
-                                    </Box>
-                                );
-                            }}
-                        </Transition>          
+                    </Transition>    
+                        <Transition in={editingView.isEditing} timeout={100} mountOnEnter unmountOnExit>
+                                {(state) => {
+
+                                    return (
+                                        <Box
+                                            position={'fixed'}
+                                            right={0}
+                                            bottom={100}
+                                            zIndex={1}
+                                            sx={{
+                                                backgroundColor: rgba(colors.primary[400], 0.5),
+                                                height: 'calc(100% - 200px)',
+                                                transition: 'transform 0.1s ease-in-out',
+                                                transform: state === 'entered' ? 'translateX(0)' : 'translateX(100%)',
+                                            }}
+                                        >
+                                            {<EditViewPanel />}
+                                        </Box>
+                                    );
+                                }}
+                            </Transition>          
+                </Box> */}
+
+                <Box sx={{...columnStyle}}>
+
+                    <Box
+                        ref={drop}
+                        sx={{
+                            height: '100%',
+                            width: '100%'
+                        }}>
+                        <DashboardGrid setDashboard={setDashboard} />
+                    </Box>
+{/* 
+                    <Box
+                        sx={{
+                            backgroundColor: colors.primary[400],
+                            opacity: 0.5,
+                            height: '10%',
+                            bottom: 5,
+                            width: '100%'
+                        } }>
+
+                        <AddDataViewPanel orientation={'horizontal'} />
+                    </Box> */}
+                </Box>
+
+                <ViewConfigurationSidebar 
+                    isCollapsed={!editingView.isEditing}
+                    width={350}/>
             </Box>
 
-            <Box
-                ref={drop}
-                position={'fixed'}
-                sx={{
-                    // backgroundColor: colors.primary[300],
-                    height: '90%',
-                    width: '70%'
-                }}>
-                <DashboardGrid setDashboard={setDashboard} />
-            </Box>
 
-            <Box
-                sx={{
-                    backgroundColor: colors.primary[400],
-                    opacity: 0.5,
-                    width: '75%',
-                    height: '10%'
-                
-                } }>
-                <DataSelector />
-            </Box>
 
-                    
-
-            </Box>
         </DashboardContextProvider > 
     );
 

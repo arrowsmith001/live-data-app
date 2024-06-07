@@ -2,9 +2,8 @@ import React, { ReactNode, createContext, useContext, useEffect, useMemo, useSta
 import { socket } from '../network/socket';
 import { SchemaParser } from './SchemaParser';
 import { getSchemas } from '../api/ApiFunctions';
-import { DashboardInfo } from '../api/model';
+import { DashboardInfo, DataViewType } from '../api/model';
 import { DashboardParams } from '../pages/Dashboards';
-import { DataViewType } from '../components/AddDataViewPanel';
 import { set } from 'date-fns';
 
 export type EditingView = {
@@ -23,6 +22,7 @@ interface DashboardContextProviderProps {
 
 interface DashboardContextType {
     getData: (connectionId?: number, schemaId?: number) => any[];
+    getLatestData: (connectionId?: number, schemaId?: number) => string | null;
     dashboard: DashboardInfo | null;
     setDashboardParams: React.Dispatch<React.SetStateAction<DashboardParams>>;
     appendView: (vi: DataViewType) => void,
@@ -34,10 +34,13 @@ interface DashboardContextType {
     setConnectionId: React.Dispatch<React.SetStateAction<number | undefined>>;
     setSchemaId: React.Dispatch<React.SetStateAction<number | undefined>>;
     setEditingView: React.Dispatch<React.SetStateAction<EditingView>>;
+    editingView: EditingView;
+    setViewArg: (vi: number, ii: number, sii: number | null) => void
 }
 
 export const DashboardContext: React.Context<DashboardContextType> = createContext<DashboardContextType>({
     getData: (connectionId?: number, schemaId?: number) => [],
+    getLatestData: (connectionId?: number, schemaId?: number) => null,
     setDashboardParams: () => {},
     dashboard: null,
     appendView: (vi) => {},
@@ -48,7 +51,9 @@ export const DashboardContext: React.Context<DashboardContextType> = createConte
     selectedSchemaId: undefined,
     setConnectionId: (cid) => {},
     setSchemaId: (sid) => {},
-    setEditingView: (ev) => {}
+    setEditingView: (ev) => {},
+    editingView: {isEditing: false, viewIndex: -1},
+    setViewArg: (vi, ii, sii) => {}
 });
 
 export const DashboardContextProvider: React.FC<DashboardContextProviderProps> = ({ children, dashboard, setDashboard, editingView, setEditingView, isEditable }) => {
@@ -60,9 +65,15 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
     const [selectedSchemaId, setSchemaId] = useState<number | undefined>(undefined);
 
     const getData = (connectionId?: number, schemaId?: number) => {
-        console.log(connectionId + ' ' + schemaId);
+        // console.log(connectionId + ' ' + schemaId);
         if(connectionId === undefined || schemaId === undefined) return [];
         return data[connectionId + '-' + schemaId] || [];
+    };
+
+    const getLatestData = (connectionId?: number, schemaId?: number) => {
+        const data = getData(connectionId, schemaId);
+        if(data.length === 0) return null;
+        return data[data.length - 1];
     };
 
     // TODO: Make indeterminate cid and sid for editing purposes
@@ -85,6 +96,28 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
             }
         )
     }
+
+    const setViewArg = (viewIndex : number, inputIndex: number, schemaItemIndex: number | null) => {
+        setDashboard(
+            {
+                ...dashboard,
+                dashboardViews: [
+                    ...dashboard.dashboardViews.map((view, i) => {
+                        if(i === viewIndex) {
+                            const args = view.args;
+                            while(inputIndex >= args.length) {
+                                args.push(null);
+                            }
+                            args[inputIndex] = schemaItemIndex;
+                            return {...view, args: args}
+                        }
+                        return view;
+                    }),
+                    
+                ]
+            }
+        );
+    } 
 
     const assignConnectionId = (index: number, connectionId?: number) => {
 
@@ -146,19 +179,18 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
         // iterate through keys and subscribe to connectionIds
         for (const connectionId of Array.from(dataCombos.keys())) {
             for (const schemaId of dataCombos.get(connectionId)!) {
-                console.log('subscribing to connection-' + connectionId + ' schema-' + schemaId);
+                // console.log('subscribing to connection-' + connectionId + ' schema-' + schemaId);
                 socket.on('connection-' + connectionId, (data) => {
 
-                    console.log('DATA: ' + connectionId + ' - ' + schemaId);
+                    // console.log('DATA: ' + connectionId + ' - ' + schemaId);
                     const decoded = SchemaParser.parse(data, schemaId);
-
 
 
                     setData((prevData) => {
                         // append data at key
                         const key = connectionId + '-' + schemaId;
                         const prevDataArray = prevData[key] || [];
-                        const newData = [...prevDataArray, decoded];
+                        const newData = [...prevDataArray, decoded].slice(-100);
                         const d = { ...prevData, [key]: newData };
                         //console.log(d);
                         return d;
@@ -187,7 +219,9 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
             assignConnectionId, assignSchemaId,
             selectedConnectionId, selectedSchemaId,
             setConnectionId, setSchemaId,
-            setEditingView
+            setEditingView, editingView,
+            getLatestData,
+            setViewArg
             }}>
             {children}
         </DashboardContext.Provider>

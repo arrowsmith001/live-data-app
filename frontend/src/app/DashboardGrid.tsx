@@ -46,9 +46,10 @@ const DashboardGrid = ({setDashboard} : {setDashboard : React.Dispatch<React.Set
 
 
     return (
-        <Container>
 
-            <Grid ref={gridRef} container spacing={2}>
+            <Grid
+            p={8} spacing={2}
+            ref={gridRef} container>
                 {dashboard?.dashboardViews.map((v, index) => (
                     <DataView key={index} 
                     index={index}
@@ -61,7 +62,6 @@ const DashboardGrid = ({setDashboard} : {setDashboard : React.Dispatch<React.Set
                     </Card>
                 </Grid>
             </Grid>
-        </Container>
     );
 }
 

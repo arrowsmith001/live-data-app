@@ -1,6 +1,3 @@
-import { TupleType } from "typescript";
-import { DataViewType } from "../components/AddDataViewPanel";
-
 
 export type ConnectionInfo = {
     id?: number;
@@ -10,7 +7,7 @@ export type ConnectionInfo = {
     endpoint: string;
 }
 
-export type SchemaType = 'float' | 'integer' | 'string' | 'boolean' | 'timestamp';
+export type DataType = 'float' | 'integer' | 'string' | 'boolean' | 'timestamp' | 'any' | 'number';
 export type SchemaFormat = 'delimited' | 'json';
 
 export type SchemaInfo = {
@@ -18,7 +15,7 @@ export type SchemaInfo = {
     count: number;
     name: string;
     labels: string[];
-    types: SchemaType[];
+    types: DataType[];
     format: SchemaFormat;
     delimiter?: string;
 }
@@ -39,4 +36,25 @@ export type DashboardViewInfo = {
     args: any[];
     w: number;
     h: number;
+}
+
+export type DataViewType =
+    'line'|
+     'display'|
+     'position'|
+    'pose';
+
+
+export type DataViewInput = {
+    label: string,
+    type: DataType,
+    optional: boolean
+}
+
+// associate each type with a list of inputs i.e. x, y for line
+export const DataViewTypeInputs = {
+    ['line']: [{ label: 'x', type: 'float', optional: false }, { label: 'y', type: 'float', optional: false }],
+    ['display']: [{ label: 'value', type: 'any', optional: false }],
+    ['position']: [{ label: 'x', type: 'float', optional: false }, { label: 'y', type: 'float', optional: false }],
+    ['pose']: [{ label: 'x', type: 'float', optional: false }, { label: 'y', type: 'float', optional: false }, { label: 'theta', type: 'float', optional: false }]
 }

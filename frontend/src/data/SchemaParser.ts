@@ -1,4 +1,4 @@
-import { SchemaInfo, SchemaType } from "../api/model";
+import { SchemaInfo, DataType } from "../api/model";
 
 
 export class SchemaParser {
@@ -38,7 +38,7 @@ export class SchemaParser {
         return parsed;
     }
 
-    private static parseValue(value: any, type: SchemaType) {
+    private static parseValue(value: any, type: DataType) {
         if (type === 'float') {
             return parseFloat(value);
         }

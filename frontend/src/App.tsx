@@ -1,5 +1,5 @@
 import { ThemeProvider, Theme } from "@emotion/react";
-import { Container, CssBaseline } from "@mui/material";
+import { Box, Container, CssBaseline } from "@mui/material";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Topbar from "./app/Topbar";
@@ -28,26 +28,27 @@ function App() {
         <CssBaseline />
         <DataContextProvider>
           <BrowserRouter>
-            <div className="app">
+            <Box sx={{width: '100%', height:'100%', flexDirection: 'row', display: 'flex'}}>
               <Sidebar width={sidebarWidth} />
-                <Container disableGutters
-                 sx={{height: 'calc(100vh - 64px)', width: '100%'}}>
 
+
+              <Box sx={{width: '100%', height:'100%', flexDirection: 'column', display: 'flex'}}>
                 <Topbar />
+
 
                 <Routes>
                   <Route path="dashboards" element={<Dashboards />}>
                     <Route index element={<BrowseDashboards />} />
-          <Route path="add" element={<AddDashboard/>} />
+                    <Route path="add" element={<AddDashboard/>} />
 
                   </Route>
                   <Route path="connections" element={<Connections />} />
                   <Route path="schemas" element={<Schemas />} />
                 </Routes>
                 
-</Container>
+            </Box>
+            </Box>
 {/* <Sidebar width={sidebarWidth} /> */}
-            </div>
           </BrowserRouter>
           </DataContextProvider>
           </DndProvider>

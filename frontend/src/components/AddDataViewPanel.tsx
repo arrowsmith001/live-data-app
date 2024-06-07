@@ -2,28 +2,25 @@ import { Add } from "@mui/icons-material";
 import { Box, Card, Grid, IconButton, colors, useTheme } from "@mui/material";
 import { useContext } from "react";
 import { DashboardContext } from "../data/DashboardContextProvider";
-import { DashboardInfo } from "../api/model";
+import { DashboardInfo, DataViewType } from "../api/model";
 import { tokens } from "../styles/theme";
 import { DataType } from "../backlog/DataReader";
 import { useDrag } from "react-dnd";
 
-export enum DataViewType {
-    Line = 'line',
-    Display = 'display',
-    Pose = 'pose'
-}
 
-const AddDataViewPanel = () => {
+
+const AddDataViewPanel = ({orientation} : {orientation: 'horizontal' | 'vertical'}) => {
 
     const colors = tokens(useTheme().palette.mode);
 
     const { dashboard } = useContext(DashboardContext);
 
+    const flexDir = orientation === 'horizontal' ? 'row' : 'column';
     return (
-        <Box >
-            <AddDataViewItem type={DataViewType.Line} />
-            <AddDataViewItem type={DataViewType.Display} />
-            <AddDataViewItem type={DataViewType.Pose} />
+        <Box display={'flex'} flexDirection={flexDir} width={'100%'} alignItems={'center'} justifyContent={'center'} >
+        <AddDataViewItem type={'line'} />
+        <AddDataViewItem type={'display'} />
+        <AddDataViewItem type={'pose'} />
         </Box>
     );
 }

@@ -56,5 +56,9 @@ export type DataSchema = {
 }
 
 export enum DataType {
-    STRING, NUMBER, TIMESTAMP, BOOLEAN
+    STRING, 
+    NUMBER, FLOAT, INTEGER, 
+    TIMESTAMP, 
+    BOOLEAN, 
+    ANY
 }

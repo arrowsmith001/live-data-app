@@ -21,7 +21,7 @@ import { Delete } from "@mui/icons-material";
 import SchemaPreview from "../components/SchemaPreview";
 import SchemaItem from "../components/SchemaItem";
 import { getSchemas, addSchema, deleteSchema } from "../api/ApiFunctions";
-import { SchemaInfo, SchemaType } from "../api/model";
+import { SchemaInfo, DataType } from "../api/model";
 
 
 const Schemas = () => {
@@ -73,7 +73,7 @@ const Schemas = () => {
         }));
     };
 
-    const handleTypesChange = ({ value, index }: { value: SchemaType, index: number }) => {
+    const handleTypesChange = ({ value, index }: { value: DataType, index: number }) => {
         setNewSchema((prevSchema) => ({
             ...prevSchema,
             types: prevSchema.types.map((type, i) => i === index ? value : type)
@@ -178,7 +178,7 @@ const Schemas = () => {
                                 name="types"
                                 label="Select Type"
                                 value={newSchema.types[i]}
-                                onChange={(e) => handleTypesChange({ value: e.target.value as SchemaType, index: i })}
+                                onChange={(e) => handleTypesChange({ value: e.target.value as DataType, index: i })}
                             >
                                 <MenuItem value="float">Number (float)</MenuItem>
                                 <MenuItem value="integer">Number (integer)</MenuItem>
@@ -211,7 +211,7 @@ const Schemas = () => {
                         <Typography variant="h2">{schema.name}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                             {Array.from({ length: schema.count }).map((_, i) => (
-                                <SchemaItem key={i} label={schema.labels[i]} type={schema.types[i]}></SchemaItem>
+                                <SchemaItem key={i} schema={schema} index={i}></SchemaItem>
                             ))}
                         </Box>
                         <IconButton onClick={(e) => handleDeleteSchema(schema.id)}>
