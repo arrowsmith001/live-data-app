@@ -10,6 +10,7 @@ import { DashboardViewInfo } from "../api/model";
 import { DataContext } from "../data/DataContextProvider";
 import { resetGlobalState } from "react-use-websocket";
 import { rgba } from "polished";
+import PoseView from "../components/PoseView";
 
 export const DataView = ({ index, handleResize }: { index: number; handleResize: (index: number, w?: number, h?: number) => void; }) => {
 
@@ -57,6 +58,7 @@ export const DataView = ({ index, handleResize }: { index: number; handleResize:
                 {view.name}
                 {view.type === 'line' && <LineChart connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
                 {view.type === 'display' && <Display connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
+                {view.type === 'pose' && <PoseView connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
             </Paper>
         </ResizableGridItem>
 
