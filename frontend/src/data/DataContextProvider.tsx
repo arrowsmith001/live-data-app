@@ -46,8 +46,21 @@ export const DataContextProvider: React.FC<DataContextProviderProps> = ({ childr
 
 
         socket.on('connections_changed', (data) => {
-            getConnections().then((connections) => {
-                setConnections(new Map(connections.map((c) => [c.id, c])));
+            getConnections().then((items) => {
+                setConnections(new Map(items.map((item) => [item.id, item])));
+            });
+        });
+
+        socket.on('schemas_changed', (data) => {
+            getSchemas().then((items) => {
+                setSchemas(new Map(items.map((item) => [item.id, item])));
+            });
+        });
+
+
+        socket.on('dashboards_changed', (data) => {
+            getDashboards().then((items) => {
+                setDashboards(new Map(items.map((item) => [item.id, item])));
             });
         });
 

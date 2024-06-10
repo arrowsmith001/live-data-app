@@ -43,8 +43,8 @@ const PoseView = ({ connectionId, schemaId, args }: { connectionId?: number, sch
       <ResponsiveContainer width="100%" height="100%">
       <ScatterChart >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="x" type="number" domain={[-50, 50]} name="x"  />
-        <YAxis dataKey="y" type="number" domain={[-50, 50]} name="y"  />
+      <XAxis dataKey="x" type="number" domain={[100, 400]} name="x"  />
+        <YAxis dataKey="y" type="number" domain={[0, 200]} name="y"  />
         <ZAxis dataKey="theta" range={[100, 100]} type="number" name="theta" />
         <Scatter data={[latest]}  fill="white" />
   

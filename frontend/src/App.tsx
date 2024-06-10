@@ -19,7 +19,7 @@ import { DataContext, DataContextProvider } from "./data/DataContextProvider";
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(350); // Set the initial sidebar width here
+  const [sidebarWidth, setSidebarWidth] = useState('20vw'); // Set the initial sidebar width here
 
   return (
     <ColorModeContext.Provider value={colorMode as { toggleColorMode: () => void; }}>

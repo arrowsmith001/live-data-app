@@ -22,7 +22,9 @@ export async function addConnection(connectionInfo: ConnectionInfo): Promise<voi
         throw new Error('Endpoint is required');
     }
 
-    socket.emit('add_connection', connectionInfo);
+    const url = `${API_URL}/connections/add`;
+    const response = await axios.post(url, connectionInfo);
+    return response.data;
 }
 
 export async function addSchema(schema: SchemaInfo): Promise<void> {
@@ -35,7 +37,9 @@ export async function addSchema(schema: SchemaInfo): Promise<void> {
         schema.name += schema.types.join(', ');
     }
 
-    socket.emit('add_schema', schema);
+    const url = `${API_URL}/schemas/add`;
+    const response = await axios.post(url, schema);
+    return response.data;
 }
 
 export async function getSchema(id: any): Promise<SchemaInfo> {
@@ -45,7 +49,9 @@ export async function getSchema(id: any): Promise<SchemaInfo> {
 }
 
 export async function deleteSchema(id: any): Promise<void> {
-    socket.emit('delete_schema', id);
+    const url = `${API_URL}/schemas/delete/${id}`;
+    const response = await axios.delete(url);
+    return response.data;
 }
 
 export async function getSchemas(): Promise<SchemaInfo[]> {
@@ -63,7 +69,9 @@ export async function getConnections(): Promise<ConnectionInfo[]> {
 }
 
 export async function deleteConnection(id: any): Promise<void> {
-    socket.emit('delete_connection', id);
+    const url = `${API_URL}/connections/delete/${id}`;
+    const response = await axios.delete(url);
+    return response.data;
 }
 
 export async function subscribe(): Promise<void> {

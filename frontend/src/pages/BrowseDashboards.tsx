@@ -1,5 +1,5 @@
-import { Add } from "@mui/icons-material";
-import { Box, Typography, Card, colors, useTheme } from "@mui/material";
+import { Add, HelpOutlineOutlined } from "@mui/icons-material";
+import { Box, Typography, Card, colors, useTheme, Grid, IconButton } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardInfo } from "../api/model";
@@ -22,26 +22,36 @@ const BrowseDashboards = () => {
 
     
     return (
-        <Box>
+        <Box p={8}>
 
-        <Typography variant="h1">Dashboards</Typography>
+        <Typography variant="h2">Dashboards</Typography>
 
+
+        <Grid container spacing={4} p={4}>
 
         {dashboards.length === 0 && (
             
-            <Card
-                sx={{ backgroundColor: colors.primary['400'], color: colors.grey['100'], padding: 2, height: '200px', width: '200px'}}
+            <Grid item>
+                {/* border: '0.5px solid', borderColor: colors.grey['100'],  */}
+                <Card
+                sx={{ 
+                    backgroundColor: 'transparent', color: colors.primary['100'], 
+                    padding: 2, height: '200px', width: '200px', alignItems: 'center', justifyItems: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                    cursor: 'pointer', '&:hover': {backgroundColor: colors.primary['400']}}}
+                elevation={2}
                 onClick={() => {
                     navigate('add');
                 }}
-            >
-                <Typography variant="h5">Add dashboard</Typography>
-                <Add />
-            </Card>
+                 >
+                <Typography variant="h3" align="center">Add dashboard</Typography>
+                <Add sx={{height: '30px', width: '30px'}} />
+                </Card>
+            </Grid>
         
     )}
 
     {dashboards.map((dashboard, index) => (
+            <Grid item>
             <Card
                 sx={{ backgroundColor: colors.primary['400'], color: colors.grey['100'], padding: 2, height: '200px', width: '200px'}}
                 onClick={() => {
@@ -50,7 +60,10 @@ const BrowseDashboards = () => {
             >
                 <Typography variant="h5">{dashboard.name}</Typography>
             </Card>
+            </Grid>
     ))}
+
+        </Grid>
 
         </Box>
     );

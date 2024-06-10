@@ -5,7 +5,7 @@ from flask_socketio import SocketIO
 import websocket
 from .utils import log
 from .model import Connection
-from flask import Blueprint
+from flask import Blueprint, request
 from .. import socketio, db
 from . import main
 
@@ -27,13 +27,33 @@ def read_data(ws_server, id):
         log("Connection closed with controlled exception: " + str(e))
 
 
+@main.route("/connections/connect/<int:id>", methods=["GET"])
+def connect(id):
+    conn = db.session.query(Connection).filter(Connection.id == id).first()
+    url = conn.url
+
+    print('Connecting to: ', url)
+
+    try:
+        ws_server = websocket.WebSocket()
+        ws_server.connect("ws://" + url)
+        thread = threading.Thread(target=read_data, args=(ws_server, id))
+        thread.start()
+    except Exception as e:
+        log("Exception: " + str(e))
+
+    return "Connected", 200
+
+
 @main.route("/connections", methods=["GET"])
 def get_connections():
     return getConnectionsJson()
 
 
-@socketio.on("add_connection")
-def add_connection(data):
+@main.route("/connections/add", methods=["POST"])
+def add_connection():
+
+    data = request.get_json()
 
     log("Adding connection: " + str(data))
 
@@ -53,25 +73,19 @@ def add_connection(data):
     db.session.add(cd)
     db.session.commit()
 
-    id = db.session.query(Connection).filter(Connection.url == url).first().id
-
     socketio.emit("connections_changed", getConnectionsJson())
 
-    try:
-        ws_server = websocket.WebSocket()
-        ws_server.connect("ws://" + url)
-        thread = threading.Thread(target=read_data, args=(ws_server, id))
-        thread.start()
-    except Exception as e:
-        log("Exception: " + str(e))
-        return
+    connect(cd.id)
+    
+    return cd.get_dict(), 200
     
     
-@socketio.on("delete_connection")
+@main.route("/connections/delete/<int:id>", methods=["DELETE"])
 def delete_connection(id):
     db.session.query(Connection).filter(Connection.id == id).delete()
     db.session.commit()
     socketio.emit("connections_changed", getConnectionsJson())
+    return "Deleted", 200
 
 def getConnectionsJson():
     return json.dumps([c.get_dict() for c in db.session.query(Connection).all()])

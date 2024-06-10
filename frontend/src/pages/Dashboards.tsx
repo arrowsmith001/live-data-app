@@ -25,27 +25,4 @@ const Dashboards = () => {
     )
 }
 
-
-const DashboardsHome = () => {
-
-    return (
-        
-<Grid
-            width={'100%'}
-            padding={6}
-            container spacing={2}
-            display="grid"
-        // gridTemplateColumns="repeat(12, 1fr)"
-        // gridAutoRows="140px"
-        // gap="20px"
-        >
-        {/* <DashboardContextProvider dashboard={dashboard} >
-                <DashboardGrid />
-                <AddViewButton />
-        </DashboardContextProvider > */}
-            
-
-        </Grid >);
-};
-
 export default Dashboards;

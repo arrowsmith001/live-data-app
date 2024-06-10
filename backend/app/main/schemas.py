@@ -4,11 +4,13 @@ from . import main
 from .model import Schema
 from .utils import log
 from .. import db
-from flask import current_app as app
+from flask import current_app as app, request
 
 
-@socketio.on("add_schema")
-def add_schema(data):
+@main.route("/schemas/add", methods=["POST"])
+def add_schema():
+
+    data = request.get_json()
 
     log("Adding schema: " + str(data))
 
@@ -19,6 +21,8 @@ def add_schema(data):
 
     socketio.emit("schemas_changed", getSchemasJson())
 
+    return ds.get_dict(), 200
+
 
 @main.route("/schemas/<int:id>", methods=["GET"])
 def get_schema(id):
@@ -27,7 +31,7 @@ def get_schema(id):
     )
 
 
-@socketio.on("delete_schema")
+@main.route("/schemas/delete/<int:id>", methods=["DELETE"])
 def delete_schema(id):
     db.session.query(Schema).filter(Schema.id == id).delete()
     db.session.commit()

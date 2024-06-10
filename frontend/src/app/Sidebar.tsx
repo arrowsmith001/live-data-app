@@ -3,7 +3,7 @@ import { Sidebar as ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { tokens } from "../styles/theme";
-import { Add, BarChartOutlined, CalendarViewDayOutlined, ContactsOutlined, Dashboard, Delete, Edit, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined, Schema, SettingsInputAntenna } from "@mui/icons-material";
+import { Dashboard, Delete, Edit, HelpOutlineOutlined, HomeOutlined, MenuOutlined, PeopleOutline, PeopleOutlined, PersonOutlined, ReceiptOutlined, Schema, SettingsInputAntenna } from "@mui/icons-material";
 // import "react-pro-sidebar/dist/styles";
 
 type ItemArgs = {
@@ -34,7 +34,7 @@ const Item = ({ title, to, icon, selected, setSelected }: ItemArgs) => {
     );
 };
 
-const Sidebar = ({ width }: { width: number  }) => {
+const Sidebar = ({ width }: { width: string  }) => {
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -48,7 +48,7 @@ const Sidebar = ({ width }: { width: number  }) => {
                 rootStyles={{
                     height: '100vh',
                 }}
-                width={width + "px"}
+                width={width}
 
                 backgroundColor={colors.primary[400]}
                 collapsed={isCollapsed}>
@@ -59,11 +59,11 @@ const Sidebar = ({ width }: { width: number  }) => {
                     menuItemStyles={{
                         root: {
                             // the default style for the menu items
-                            padding: "5px 35px 5px 20px",
+                            padding: "5px 0px 5px 0px",
                             [`&:hover`]: {
                                 backgroundColor: '#13395e',
                                 color: '#868dfb',
-                                padding: "5px 35px 5px 20px"
+                                padding:  "5px 0px 5px 0px",
                             }
                         },
                         button: {
@@ -71,13 +71,11 @@ const Sidebar = ({ width }: { width: number  }) => {
                             // so we can use it to style the active menu item
                             [`&.active`]: {
                                 backgroundColor: '#13395e',
-                                color: '#b6c8d9',
-                                padding: "5px 35px 5px 20px"
+                                color: '#b6c8d9'
                             },
                             [`&:hover`]: {
                                 backgroundColor: '#13395e',
-                                color: '#868dfb',
-                                padding: "5px 35px 5px 20px"
+                                color: '#868dfb'
                             }
                         },
                         icon: {
@@ -100,6 +98,7 @@ const Sidebar = ({ width }: { width: number  }) => {
                                 display="flex"
                                 justifyContent="space-between"
                                 alignItems="center"
+                                justifyItems="center"
                                 ml="15px"
                             >
                                 <Typography variant="h3" color={colors.grey[100]}>
@@ -117,10 +116,11 @@ const Sidebar = ({ width }: { width: number  }) => {
                         </Box>
                     )}
 
-                    <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+                    <Box paddingLeft={isCollapsed ? undefined : "10%"} alignItems={'center'} justifyItems={'center'}>
 
 
                         <Item
+                    
                             title="Dashboards"
                             to="/dashboards"
                             icon={<Dashboard />}
