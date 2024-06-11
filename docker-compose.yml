@@ -7,6 +7,8 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     image: robot-data-app-backend
+    ports:
+      - "5000:5000"
   frontend:
     build:
       context: .
@@ -16,6 +18,10 @@ services:
       - "3000:80"
     expose:
       - "3000"
+    links:
+      - backend
+    depends_on:
+      - backend
 
   db:
     image: postgres

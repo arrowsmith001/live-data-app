@@ -1,9 +1,11 @@
 FROM python:3.11
 WORKDIR /app
 
-COPY backend/requirements.txt backend/app.py backend/.flaskenv ./
+COPY backend/requirements.txt backend/.flaskenv backend/run.py ./
+COPY backend/app ./app 
 RUN pip install -r ./requirements.txt
 ENV FLASK_ENV production
+ENV FLASK_APP run
 
 EXPOSE 5000
-CMD ["flask", "run", "--host", "0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

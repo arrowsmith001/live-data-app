@@ -6,6 +6,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
+time.sleep(2)
 
 port = 5000
 
@@ -18,14 +19,16 @@ def create_app(debug=False):
     app.debug = debug
     app.logger.setLevel(logging.INFO)
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        # "postgresql://postgres:password@db:5432/robotdatadb"
-        "postgresql://postgres:password@localhost/robotdatadb"
+        "postgresql://postgres:password@db:5432/robotdatadb"
     )
     app.config["CORS_HEADERS"] = "Access-Control-Allow-Origin"
 
     with app.app_context():
+        from .main.connections import Connection
+        from .main.schemas import Schema
+        from .main.dashboards import Dashboard
         db.init_app(app)
-        db.drop_all()
+        db.drop_all() # Remove to persist data
         db.session.commit()
         db.create_all()
         db.session.commit()
