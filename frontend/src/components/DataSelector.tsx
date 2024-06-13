@@ -3,12 +3,12 @@ import { getConnections, getSchemas } from "../api/ApiFunctions";
 import { ConnectionInfo, SchemaInfo } from "../api/model";
 import { Box, MenuItem, Select } from "@mui/material";
 import { DashboardContext } from "../data/DashboardContextProvider";
-import { DataContext } from "../data/DataContextProvider";
+import { DbContext } from "../data/DbContextProvider";
 
 
 const DataSelector = () => {
 
-    const {connections, schemas } = useContext(DataContext);
+    const {connections, schemas } = useContext(DbContext);
 
     const { getData, selectedConnectionId, selectedSchemaId, setConnectionId, setSchemaId } = useContext(DashboardContext);
     

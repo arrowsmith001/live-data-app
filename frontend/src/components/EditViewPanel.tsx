@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { DashboardContext } from "../data/DashboardContextProvider";
 import { Box, Card, Grid, Icon, IconButton, Input, Menu, MenuItem, Select } from "@mui/material";
 import { Cancel, Label } from "@mui/icons-material";
-import { DataContext } from "../data/DataContextProvider";
+import { DbContext } from "../data/DbContextProvider";
 import SchemaItem from "./SchemaItem";
 import { DataViewTypeInputs } from "../api/model";
 import { ConnectionIcon, SchemaIcon } from "./icons";
@@ -10,7 +10,7 @@ import { ConnectionIcon, SchemaIcon } from "./icons";
 
 const EditViewPanel = () => {
 
-    const { connections, schemas } = useContext(DataContext);
+    const { connections, schemas } = useContext(DbContext);
 
     const { dashboard, assignConnectionId, assignSchemaId, setEditingView, editingView, getData, setViewArg } = useContext(DashboardContext);
 

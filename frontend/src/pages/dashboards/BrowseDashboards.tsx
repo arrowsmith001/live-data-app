@@ -2,8 +2,8 @@ import { Add, HelpOutlineOutlined } from "@mui/icons-material";
 import { Box, Typography, Card, colors, useTheme, Grid, IconButton } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardInfo } from "../api/model";
-import { tokens } from "../styles/theme";
+import { DashboardInfo } from "../../api/model";
+import { tokens } from "../../styles/theme";
 
 const BrowseDashboards = () => {
 
@@ -36,9 +36,10 @@ const BrowseDashboards = () => {
                 <Card
                 sx={{ 
                     backgroundColor: 'transparent', color: colors.primary['100'], 
+                    borderRadius: '16px',
                     padding: 2, height: '200px', width: '200px', alignItems: 'center', justifyItems: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                     cursor: 'pointer', '&:hover': {backgroundColor: colors.primary['400']}}}
-                elevation={2}
+                elevation={6}
                 onClick={() => {
                     navigate('add');
                 }}

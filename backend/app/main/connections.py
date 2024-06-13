@@ -9,6 +9,23 @@ from flask import Blueprint, request
 from .. import socketio, db
 from . import main
 
+statuses = {}
+
+def set_connection_status(id, status):
+    global statuses
+    if(status == None):
+        if(id in statuses.keys()): del statuses[id]
+        return
+    
+    statuses[id] = status
+    socketio.emit("connection_status_changed", {"id": id, "data": statuses})
+
+
+@main.route("/connections/statuses", methods=["GET"])
+def get_connection_statuses():
+    global statuses
+    return json.dumps(statuses)
+
 
 def read_data(ws_server, id):
     event_name = "connection-" + str(id)
@@ -21,14 +38,22 @@ def read_data(ws_server, id):
                 time.sleep(0.01)
             except ConnectionAbortedError as e:
                 log("ConnectionAbortedError: " + str(e))
+                set_connection_status(id, "disconnected")
                 return
 
     except Exception as e:
         log("Connection closed with controlled exception: " + str(e))
+        set_connection_status(id, "disconnected")
 
+ws_servers = {}
 
 @main.route("/connections/connect/<int:id>", methods=["GET"])
 def connect(id):
+    global ws_servers
+    if(id in statuses and statuses[id] == "connected"):
+        return 'OK', 200
+    
+    set_connection_status(id, "pending")
     conn = db.session.query(Connection).filter(Connection.id == id).first()
     url = conn.url
 
@@ -37,12 +62,17 @@ def connect(id):
     try:
         ws_server = websocket.WebSocket()
         ws_server.connect("ws://" + url)
+        set_connection_status(id, "connected")
         thread = threading.Thread(target=read_data, args=(ws_server, id))
         thread.start()
+        ws_servers[id] = ws_server
     except Exception as e:
+        set_connection_status(id, "disconnected")
         log("Exception: " + str(e))
 
-    return "Connected", 200
+
+
+    return 'OK', 200
 
 
 @main.route("/connections", methods=["GET"])
@@ -74,17 +104,36 @@ def add_connection():
     db.session.commit()
 
     socketio.emit("connections_changed", getConnectionsJson())
+    set_connection_status(cd.id, "pending")
 
     connect(cd.id)
     
-    return cd.get_dict(), 200
+    return json.dumps(cd.get_dict())
     
     
 @main.route("/connections/delete/<int:id>", methods=["DELETE"])
-def delete_connection(id):
+def disconnect_connection(id):
     db.session.query(Connection).filter(Connection.id == id).delete()
     db.session.commit()
+
     socketio.emit("connections_changed", getConnectionsJson())
+    set_connection_status(id, None)
+
+    if(id in ws_servers.keys()): ws_servers[id].close()
+
+    return "Deleted", 200
+
+
+@main.route("/connections/disconnect/<int:id>", methods=["GET"])
+def delete_connection(id):
+
+    if(id in statuses and statuses[id] != "connected"):
+        return 'OK', 200
+
+    if(id not in ws_servers.keys()): return 404
+
+    ws_servers[id].close()
+
     return "Deleted", 200
 
 def getConnectionsJson():

@@ -6,8 +6,20 @@ export class SchemaParser {
 
         const schema = SchemaParser.schemas[schemaId];
         const out = [];
+        if(schema.format === 'json') throw new Error('JSON format not supported YET!'); // TODO: handle json format
+
+        const split = data.split(schema.delimiter); // TODO: be more liberal in schema-data mismatches
+        if(schema.count !== split.length) throw new Error('Schema count does not match data count');
+
         for(let i = 0; i < schema.count; i++) {
-            out.push(SchemaParser.parseOne(schema, data, i));
+            const datum = split[i];
+            let value;
+            try{
+                value = this.parseValue(datum, schema.types[i]);
+            }catch(e){
+                throw new Error('Error parsing value: "' + datum + '" to type ' + schema.types[i]);
+            }
+            out.push(value);
         }
         return out;
     }
@@ -46,7 +58,7 @@ export class SchemaParser {
             return parseInt(value);
         }
         else if (type === 'string') {
-            return value;
+            return value.toString();
         }
         else if (type === 'boolean') {
             return value === 'true';

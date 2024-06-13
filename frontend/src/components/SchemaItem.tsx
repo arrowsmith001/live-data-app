@@ -11,9 +11,9 @@ const { getLatestData } = useContext(DashboardContext);
 const data = getLatestData(schema.id, withConnection);
 
     return (
-        <Card sx={{ p: 1, pl: 2, pr: 2, m: 1 }}>
-            <h4 style={{ margin: 0 }}>{schema.labels[index]}</h4>
-            <h5 style={{ margin: 0 }}>{schema.types[index]}</h5>
+        <Card sx={{ p: 1, pl: 2, pr: 2, m: 2 }}>
+            <h3 style={{ margin: 0 }}>{schema.labels[index]}</h3>
+            <h4 style={{ margin: 0 }}>{schema.types[index]}</h4>
             {data && <p>{data[index]}</p>}
         </Card>
     )

@@ -1,13 +1,10 @@
-import { IconButton, Box, Typography, CircularProgress, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button, Grid } from "@mui/material";
+import { IconButton, Box, Typography, CircularProgress, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button, Grid, Card } from "@mui/material";
 import { Delete } from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
 import { useState, useEffect } from "react";
-import { WebSocketConfig } from "../backlog/WebSocketListener";
 import { socket } from '../network/socket';
-import { getUrlFromConnectionInfo } from "../utils/utils";
 import { addConnection, deleteConnection, getConnections } from "../api/ApiFunctions";
 import { ConnectionInfo } from "../api/model";
+import ConnectionStatusDot from "../components/ConnectionStatusDot";
 
 
 const Connections = () => {
@@ -78,44 +75,60 @@ const Connections = () => {
 
 
     return (
-        <Box p={8}>
+        <Box  p={8} sx={{overflowY : 'auto', height: '100%' }}>
 
             <Typography variant="h1">Connections</Typography>
             {loading && <CircularProgress />}
-            <Box mt={2}>
-                <Typography p={2} variant="h2">Add New Connection</Typography>
-                <TextField
+            <Grid p={2} pt={3} pb={3} container spacing={4}>
+               <Grid item>
+               <TextField
                     name="name"
                     label="Name"
                     value={newConnection.name}
                     onChange={handleInputChange}
                 />
+               </Grid>
+               <Grid item>
+                
                 <TextField
                     name="ip"
                     label="IP Address"
                     value={newConnection.ip}
                     onChange={handleInputChange}
                 />
+               </Grid>
+               <Grid item>
+                
                 <TextField
                     name="port"
                     label="Port"
                     value={newConnection.port}
                     onChange={handleInputChange}
                 />
+               </Grid>
+               <Grid item>
+                
                 <TextField
                     name="endpoint"
                     label="Endpoint"
                     value={newConnection.endpoint}
                     onChange={handleInputChange}
                 />
-                <Button variant="contained" onClick={handleAddConnection}>Add Connection</Button>
-                {error && <Typography color="error">{error}</Typography>}
-            </Box>
-            <Box p={2}>
-                <TableContainer component={Paper}>
+               </Grid>
+               <Grid item>
+                
+               <Button color="secondary" sx={{height: '100%'}} variant="contained" onClick={handleAddConnection}>Add Connection</Button>
+               </Grid>
+               {error && <Grid item>
+                <Typography color="error">{error}</Typography>
+               </Grid>}
+            </Grid>
+            <Box fontSize={'26px'} p={2}>
+                <TableContainer component={Card}>
                     <Table>
                         <TableHead>
                             <TableRow>
+                                <TableCell></TableCell>
                                 <TableCell>Name</TableCell>
                                 <TableCell>IP Address</TableCell>
                                 <TableCell>Port</TableCell>
@@ -126,6 +139,9 @@ const Connections = () => {
                         <TableBody>
                             {connections.map((connection: ConnectionInfo) => (
                                 <TableRow key={connection.id}>
+                                    <TableCell width={'80px'} >
+                                        <ConnectionStatusDot id={connection.id} />
+                                    </TableCell>
                                     <TableCell>{connection.name}</TableCell>
                                     <TableCell>{connection.ip}</TableCell>
                                     <TableCell>{connection.port}</TableCell>

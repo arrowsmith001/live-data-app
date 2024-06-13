@@ -33,7 +33,7 @@ class Connection(db.Model):
             "port": self.port,
             "endpoint": self.endpoint,
             "name": self.name,
-            "url": self.url,
+            "url": self.url
         }
 
 

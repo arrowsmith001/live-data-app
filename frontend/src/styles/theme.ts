@@ -1,6 +1,7 @@
 import { createContext, useState, useMemo } from "react";
 import { createTheme } from "@mui/material/styles";
 import { PaletteMode } from "@mui/material";
+import { useTheme } from "@emotion/react";
 
 
 // color design tokens export
@@ -129,6 +130,7 @@ export const themeSettings = (mode: PaletteMode | undefined) => {
     const colors = tokens(mode);
     return {
         palette: {
+        
             mode: mode,
             ...(mode === "dark"
                 ? {
@@ -213,6 +215,21 @@ export const useMode = () => {
         []
     );
 
-    const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
+    const theme = useMemo(() => createTheme({...themeSettings(mode), 
+        components: {
+        MuiTableCell: {
+            defaultProps: {
+                    sx: {
+                        borderBottom: 'none',
+                        padding: '10px',
+                        fontSize: '18px',
+                        fontFamily: fontFamily
+                    },
+                
+                    
+                
+            
+        }}}}), [mode]);
     return [theme, colorMode];
 };
+

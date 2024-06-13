@@ -3,18 +3,19 @@ import { Box, Container, CssBaseline } from "@mui/material";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Topbar from "./app/Topbar";
-import { WebSocketProvider } from "./backlog/WebSocketContext";
-import Connections from "./pages/Connections";
-import Content from "./pages/Content";
-import Dashboards from "./pages/Dashboards";
-import Schemas from "./pages/Schemas";
+import { WebSocketProvider } from "./deprecated/WebSocketContext";
 import { useMode, ColorModeContext } from "./styles/theme";
 import Sidebar from "./app/Sidebar";
-import BrowseDashboards from "./pages/BrowseDashboards";
-import AddDashboard from "./pages/AddDashboard";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { DataContext, DataContextProvider } from "./data/DataContextProvider";
+import { DbContext, DbContextProvider } from "./data/DbContextProvider";
+import Connections from "./pages/Connections";
+import AddDashboard from "./pages/dashboards/AddDashboard";
+import BrowseDashboards from "./pages/dashboards/BrowseDashboards";
+import Dashboards from "./pages/dashboards/Dashboards";
+import AddSchema from "./pages/schemas/AddSchema";
+import BrowseSchemas from "./pages/schemas/BrowseSchemas";
+import Schemas from "./pages/schemas/Schemas";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -26,7 +27,7 @@ function App() {
       <ThemeProvider theme={theme as Theme}>
         <DndProvider backend={HTML5Backend}>
         <CssBaseline />
-        <DataContextProvider>
+        <DbContextProvider>
           <BrowserRouter>
             <Box sx={{width: '100%', height:'100%', flexDirection: 'row', display: 'flex'}}>
               <Sidebar width={sidebarWidth} />
@@ -43,14 +44,19 @@ function App() {
 
                   </Route>
                   <Route path="connections" element={<Connections />} />
-                  <Route path="schemas" element={<Schemas />} />
+
+                  <Route path="schemas" element={<Schemas />}>
+                    <Route index element={<BrowseSchemas />} />
+                    <Route path="add" element={<AddSchema/>} />
+
+                  </Route>
                 </Routes>
                 
             </Box>
             </Box>
 {/* <Sidebar width={sidebarWidth} /> */}
           </BrowserRouter>
-          </DataContextProvider>
+          </DbContextProvider>
           </DndProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 from flask_socketio import SocketIO
 from flask import Flask, request
@@ -18,9 +19,7 @@ def create_app(debug=False):
     app = Flask(__name__)
     app.debug = debug
     app.logger.setLevel(logging.INFO)
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "postgresql://postgres:password@db:5432/robotdatadb"
-    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = ( os.getenv("DATABASE_URL"))
     app.config["CORS_HEADERS"] = "Access-Control-Allow-Origin"
 
     with app.app_context():
@@ -28,7 +27,7 @@ def create_app(debug=False):
         from .main.schemas import Schema
         from .main.dashboards import Dashboard
         db.init_app(app)
-        db.drop_all() # Remove to persist data
+        # db.drop_all() # Remove to persist data
         db.session.commit()
         db.create_all()
         db.session.commit()

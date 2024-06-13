@@ -7,7 +7,7 @@ import Display from "../components/Display";
 import { DashboardContext } from "../data/DashboardContextProvider";
 import { Cancel, Schema, Settings, SettingsInputAntenna } from "@mui/icons-material";
 import { DashboardViewInfo } from "../api/model";
-import { DataContext } from "../data/DataContextProvider";
+import { DbContext } from "../data/DbContextProvider";
 import { resetGlobalState } from "react-use-websocket";
 import { rgba } from "polished";
 import PoseView from "../components/PoseView";
@@ -16,7 +16,7 @@ export const DataView = ({ index, handleResize }: { index: number; handleResize:
 
     const [settings, setSettings] = useState(false);
 
-    const { connections, schemas } = useContext(DataContext);
+    const { connections, schemas } = useContext(DbContext);
 
     // const [{ opacity }, dragRef] = useDrag(
     //     () => ({

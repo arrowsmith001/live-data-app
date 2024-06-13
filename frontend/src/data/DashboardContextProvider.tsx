@@ -3,7 +3,7 @@ import { socket } from '../network/socket';
 import { SchemaParser } from './SchemaParser';
 import { getSchemas } from '../api/ApiFunctions';
 import { DashboardInfo, DataViewType } from '../api/model';
-import { DashboardParams } from '../pages/Dashboards';
+import { DashboardParams } from '../pages/dashboards/Dashboards';
 import { set } from 'date-fns';
 
 export type EditingView = {
@@ -181,6 +181,7 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
             for (const schemaId of dataCombos.get(connectionId)!) {
                 // console.log('subscribing to connection-' + connectionId + ' schema-' + schemaId);
                 socket.on('connection-' + connectionId, (data) => {
+try{
 
                     // console.log('DATA: ' + connectionId + ' - ' + schemaId);
                     const decoded = SchemaParser.parse(data, schemaId);
@@ -195,6 +196,10 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
                         //console.log(d);
                         return d;
                     });
+}
+catch(e: any) {
+    console.log(e.message);
+}
                 });
             }
         }

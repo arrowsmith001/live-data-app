@@ -1,4 +1,5 @@
-import { SxProps } from "@mui/material";
+import { SxProps, useTheme } from "@mui/material";
+import { tokens } from "./theme";
 
 
 export const rowStyle : SxProps = {
@@ -17,4 +18,9 @@ export const columnStyle : SxProps = {
     justifyContent: 'center',
     height: '100%',
     width: '100%'
+}
+
+
+export const useColors = () => {
+    return tokens(useTheme().palette.mode);
 }

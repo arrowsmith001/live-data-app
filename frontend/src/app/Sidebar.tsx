@@ -129,18 +129,18 @@ const Sidebar = ({ width }: { width: string  }) => {
                         />
 
 
-                        <Item
-                            title="Connections"
-                            to="/connections"
-                            icon={<SettingsInputAntenna />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
                         
                         <Item
                             title="Schemas"
                             to="/schemas"
                             icon={<Schema />}
+                            selected={selected}
+                            setSelected={setSelected}
+                        />
+                        <Item
+                            title="Connections"
+                            to="/connections"
+                            icon={<SettingsInputAntenna />}
                             selected={selected}
                             setSelected={setSelected}
                         />

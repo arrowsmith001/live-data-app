@@ -3,7 +3,7 @@ import { DataStreamConfig } from './DataStreamMenuItem';
 import { Drawer, IconButton, ListItem, List, ListItemText, Divider } from '@mui/material';
 import React from 'react';
 import { Add, ChevronLeft, NetworkCheck, Refresh, Settings } from '@mui/icons-material';
-import ConnectionStatusDot from './ConnectionStatusDot';
+import ConnectionStatusDot from '../components/ConnectionStatusDot';
 import { subscribe } from '../api/ApiFunctions';
 import { useStyles } from "./useStyles";
 

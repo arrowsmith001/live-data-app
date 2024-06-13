@@ -7,6 +7,19 @@ export const API_URL = 'http://localhost:5000';
 
 
 
+const isPortValid = (port: number) => {
+    return port >= 0 && port <= 65535;
+}
+const isIpValid = (ip: string) => {
+    const ipRegex = new RegExp('^([0-9]{1,3}\.){3}[0-9]{1,3}$');
+    return ipRegex.test(ip);
+}
+
+const isEndpointValid = (endpoint: string) => {
+    const illegalChars = /[^a-zA-Z0-9_]/;
+    return !illegalChars.test(endpoint);
+}
+
 export async function addConnection(connectionInfo: ConnectionInfo): Promise<void> {
 
     if (!connectionInfo.name) {
@@ -18,8 +31,17 @@ export async function addConnection(connectionInfo: ConnectionInfo): Promise<voi
     if (!connectionInfo.port) {
         throw new Error('Port is required');
     }
-    if (!connectionInfo.endpoint) {
-        throw new Error('Endpoint is required');
+
+    if(!isIpValid(connectionInfo.ip)) {
+        throw new Error('Invalid IP address');
+    }
+    
+    if(!isPortValid(connectionInfo.port)) {
+        throw new Error('Invalid port number');
+    }
+
+    if(!isEndpointValid(connectionInfo.endpoint)) {
+        throw new Error('Invalid endpoint');
     }
 
     const url = `${API_URL}/connections/add`;
@@ -32,9 +54,8 @@ export async function addSchema(schema: SchemaInfo): Promise<void> {
         schema.delimiter = undefined;
     }
     if (schema.name === '') {
-        schema.name = schema.format === 'delimited' ? 'Delimited (' + schema.delimiter + ')' : 'JSON';
-        schema.name += ' - ';
-        schema.name += schema.types.join(', ');
+        schema.name = schema.format === 'delimited' ? 'Delimited ' : 'JSON ';
+        schema.name += schema.format === 'delimited' ? schema.types.join(schema.delimiter) : schema.types.join(', ');
     }
 
     const url = `${API_URL}/schemas/add`;
@@ -79,8 +100,46 @@ export async function subscribe(): Promise<void> {
     //socket.emit('subscribe', connectionInfo);
 }
 
+export async function connect(id? : number): Promise<void> {
+    if (id === undefined) {
+        throw new Error('ID is required');
+    }
+
+    try{
+
+    const url = `${API_URL}/connections/connect/` + id;
+    const response = await axios.get(url);
+    return response.data;
+    }
+    catch (error: any) {
+        console.log('connect error: ' + error.message);
+    }
+}
+
+export async function disconnect(id? : number): Promise<void> {
+    if (id === undefined) {
+        throw new Error('ID is required');
+    }
+
+    try{
+
+    const url = `${API_URL}/connections/disconnect/` + id;
+    const response = await axios.get(url);
+    return response.data;
+    }
+    catch (error: any) {
+        console.log('disconnect error: ' + error.message);
+    }
+}
+
 export async function getDashboards(): Promise<DashboardInfo[]> {
     const url = `${API_URL}/dashboards`;
     const response = await axios.get(url);
     return response.data;
+}
+
+export async function getStatuses(): Promise<Map<number, string>> {
+    const url = `${API_URL}/connections/statuses`;
+    const response = await axios.get(url);
+    return new Map(Object.entries(response.data).map(([k, v]) => [parseInt(k), v as string]));
 }

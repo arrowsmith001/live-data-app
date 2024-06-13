@@ -4,7 +4,7 @@ import { ColorModeContext, tokens } from "../styles/theme";
 import InputBase from "@mui/material/InputBase";
 import { NotificationsOutlined, PersonOutlined, Search, SettingsOutlined, FiberManualRecord, FiberSmartRecord } from "@mui/icons-material";
 import { DarkModeOutlined, LightModeOutlined } from "@mui/icons-material";
-import { useLatestData } from "../backlog/useServer";
+import { useLatestData } from "../deprecated/useServer";
 
 const Topbar = () => {
     const theme = useTheme();
