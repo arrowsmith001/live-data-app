@@ -2,7 +2,7 @@ import useWebSocket from "react-use-websocket";
 import { WebSocketConfig } from "../deprecated/WebSocketListener";
 import { useServerHook } from "../deprecated/useServerHook";
 import { useContext, useEffect, useState } from "react";
-import { DbContext } from "../data/DbContextProvider";
+import { DataContext } from "../data/DataContextProvider";
 import { Box, IconButton } from "@mui/material";
 import { connect, disconnect } from "../api/ApiFunctions";
 import { ConnectionIcon } from "./icons";
@@ -16,7 +16,7 @@ const iconSize = '50px';
 
 function ConnectionStatusDot({ id } : { id? : number}) {
 
-    const { getStatus } = useContext(DbContext);
+    const { getStatus } = useContext(DataContext);
 
     const [ status, setStatus] = useState<string>("unknown");
 

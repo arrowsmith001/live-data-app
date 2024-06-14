@@ -1,64 +1,48 @@
 import { Box, Grid, IconButton, Menu, MenuItem, Paper, Typography, useTheme } from "@mui/material";
 import { tokens } from "../styles/theme";
 import { useContext, useState } from "react";
-import { ResizableGridItem } from "../components/ResizableGridItem";
-import LineChart from "../components/LineChart";
-import Display from "../components/Display";
+import { ResizableGridItem } from "./ResizableGridItem";
+import LineChart from "./LineChart";
+import Display from "./Display";
 import { DashboardContext } from "../data/DashboardContextProvider";
 import { Cancel, Schema, Settings, SettingsInputAntenna } from "@mui/icons-material";
 import { DashboardViewInfo } from "../api/model";
-import { DbContext } from "../data/DbContextProvider";
+import { DataContext } from "../data/DataContextProvider";
 import { resetGlobalState } from "react-use-websocket";
 import { rgba } from "polished";
-import PoseView from "../components/PoseView";
+import PoseView from "./PoseView";
+import { DataStreamContext } from "../data/DataStreamContext";
+import { SingleStreamContext, SingleStreamContextProvider } from "../data/SingleStreamContext";
+import { DashboardEditContext } from "../data/DashboardEditContextProvider";
 
 export const DataView = ({ index, handleResize }: { index: number; handleResize: (index: number, w?: number, h?: number) => void; }) => {
 
-    const [settings, setSettings] = useState(false);
 
-    const { connections, schemas } = useContext(DbContext);
+    const { setSelectedView, workingDashboard } = useContext(DashboardEditContext);
 
-    // const [{ opacity }, dragRef] = useDrag(
-    //     () => ({
-    //       type: 'card',
-    //       collect: (monitor) => ({
-    //         opacity: monitor.isDragging() ? 0.5 : 1
-    //       })
-    //     }),
-    //     []
-    //   )
-    const [connAnchorEl, setConnAnchorEl] = useState<null | HTMLElement>(null); // State for the context menu anchor element
-    const [schemaAnchorEl, setSchemaAnchorEl] = useState<null | HTMLElement>(null); // State for the context menu anchor element
-
-    const { setEditingView, dashboard } = useContext(DashboardContext);
-    const view = dashboard?.dashboardViews[index];
+    const config = workingDashboard.views[index].config;
+    const l = workingDashboard.views[index].layout;
 
     const colors = tokens(useTheme().palette.mode);
 
 
-    const onConnectionsClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setConnAnchorEl(e.currentTarget);
-    };
-    const onSchemaClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setSchemaAnchorEl(e.currentTarget);
-    };
-
-    return view === undefined ? <></> : <Grid
+    return <Grid
         // ref={dragRef} 
-        width={'100%'} key={index} item xs={view.w} height={view.h}>
+        width={'100%'} key={index} item xs={l.w} height={l.h}>
         <ResizableGridItem onResize={(w, h) => handleResize(index, w, h)}>
 
             <Box  position={'absolute'} right={2}>
-                <IconButton onClick={(e) => { setEditingView({viewIndex: index, isEditing: true}); }}>
+                <IconButton onClick={(e) => { setSelectedView({id: index, isEditing: true}); }}>
                     <Settings />
                 </IconButton>
             </Box>
 
             <Paper sx={{ backgroundColor: colors.primary[400], color: colors.grey[100], padding: 2, height: '100%' }}>
-                {view.name}
-                {view.type === 'line' && <LineChart connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
-                {view.type === 'display' && <Display connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
-                {view.type === 'pose' && <PoseView connectionId={view.connectionId} schemaId={view.schemaId} args={view.args} />}
+                {/* <SingleStreamContextProvider connectionId={config.connectionId} schemaId={config.schemaId} args={[]}>
+                    {config.type === 'line' && <LineChart connectionId={config.connectionId} args={[]} />}
+                    {config.type === 'display' && <Display />}
+                    {config.type === 'pose' && <PoseView connectionId={config.connectionId} schemaId={config.schemaId} args={[]} />}
+                </SingleStreamContextProvider> */}
             </Paper>
         </ResizableGridItem>
 

@@ -1,29 +1,73 @@
-import { useContext } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { DashboardContext } from "../data/DashboardContextProvider";
 import { Box, Card, Grid, Icon, IconButton, Input, Menu, MenuItem, Select } from "@mui/material";
 import { Cancel, Label } from "@mui/icons-material";
-import { DbContext } from "../data/DbContextProvider";
+import { DataContext } from "../data/DataContextProvider";
 import SchemaItem from "./SchemaItem";
 import { DataViewTypeInputs } from "../api/model";
 import { ConnectionIcon, SchemaIcon } from "./icons";
+import { DashboardEditContext } from "../data/DashboardEditContextProvider";
+import { set } from "date-fns";
 
 
 const EditViewPanel = () => {
 
-    const { connections, schemas } = useContext(DbContext);
+    const { connections, schemas } = useContext(DataContext);
 
-    const { dashboard, assignConnectionId, assignSchemaId, setEditingView, editingView, getData, setViewArg } = useContext(DashboardContext);
+    const { selectedView, setSelectedView, workingDashboard, setWorkingDashboard } = useContext(DashboardEditContext);
 
-    const viewIndex = editingView.viewIndex ?? -1;
-    const view = dashboard?.dashboardViews[viewIndex];
-    const type = view?.type;
-    const inputs = type ? DataViewTypeInputs[type] : null;
+    if (!selectedView || selectedView.id === undefined) return null;
 
+    const view = workingDashboard.views[selectedView.id.toString()];
+  
+    if (!view) return null;
+  
+    const { connectionId, schemaId } = view.config;
+  
+    const schema = schemas.get(schemaId);
+  
+    const inputs = DataViewTypeInputs[view.config.type];
+
+    const mapping = view.config.inputMapping ?? {};
+
+
+    function setSelectedConnectionId(connectionId: number) {
+        setWorkingDashboard(
+            (prev : any) => {
+                const newDashboard = {...prev};
+                newDashboard.views[selectedView!.id!.toString()].config.connectionId = connectionId;
+                console.log('newDashboard', newDashboard);
+                return newDashboard;
+            }
+        )
+    }
+
+    function setSelectedSchemaId(schemaId: number) {
+        setWorkingDashboard(
+            (prev : any) => {
+                const newDashboard = {...prev};
+                newDashboard.views[selectedView!.id!.toString()].config.schemaId = schemaId;
+                console.log('newDashboard', newDashboard);
+                return newDashboard;
+            }
+        )
+    }
+
+    function mapInput(inputIndex: number, value: any) {
+        setWorkingDashboard(
+            (prev : any) => {
+                const newDashboard = {...prev};
+                newDashboard.views[selectedView!.id!.toString()].config.inputMapping[inputIndex] = value;
+                console.log('newDashboard', newDashboard);
+                return newDashboard;
+            }
+        )
+    }
 
     return (
         
         <Grid container spacing={1} flexDirection={'column'} display={'flex'} width={'100%'}>
-            <IconButton onClick={() => setEditingView((prev) => { return {...prev, isEditing: false}})}>
+            <IconButton onClick={() => setSelectedView((prev) => { return {...prev, isEditing: false}})}>
                 <Cancel/>
             </IconButton>
             <Grid item flexDirection={'row'} display={'flex'}  alignItems={'center'}>
@@ -32,7 +76,7 @@ const EditViewPanel = () => {
             
             <Grid item flexDirection={'row'} display={'flex'}  alignItems={'center'}>
                 <ConnectionIcon />
-            <Select  sx={{width: '100%'}} label='Connection' onChange={(e) => {assignConnectionId(viewIndex, parseInt(e.target.value?.toString() ?? ''))}} value={view?.connectionId ?? -1}>
+            <Select value={connectionId}  sx={{width: '100%'}} label='Connection' onChange={(e) => { setSelectedConnectionId(e.target.value as number) }}>
                 
                 {
                     Array.from(connections.values()).map((c) => {
@@ -46,16 +90,16 @@ const EditViewPanel = () => {
             <Grid item flexDirection={'row'} display={'flex'} alignItems={'center'}>
                 <SchemaIcon/>
         
-                <Select sx={{width: '100%'}} label='Schema' onChange={(e) => {assignSchemaId(viewIndex, parseInt(e.target.value?.toString() ?? ''))}} value={view?.schemaId ?? -1}>
+                <Select value={schemaId}  sx={{width: '100%'}} label='Schema' onChange={(e) => { setSelectedSchemaId(e.target.value as number)
+            }}>
                 {
-                    Array.from(schemas.values()).map((c) => {
-                        return <MenuItem value={c.id}>{c.name}</MenuItem>
+                    Array.from(schemas.values()).map((s) => {
+                        return <MenuItem value={s.id}>{s.name}</MenuItem>
                     })
 
                 }
             </Select>
             </Grid>
-
 
             { inputs &&
                 inputs.map((inp, inputIndex) => {
@@ -64,12 +108,11 @@ const EditViewPanel = () => {
                         <h4 style={{ margin: 0 }}>{inp.label}</h4>
                         <h5 style={{ margin: 0 }}>{inp.type}</h5>
                     </Card>
-                    <Select onChange={(e) => setViewArg(viewIndex, inputIndex, (e.target.value as number) ?? null)} sx={{width: '50%'}}>
+                    <Select value={mapping[inputIndex]} onChange={(e) => mapInput(inputIndex, (e.target.value as number) ?? null)} sx={{width: '50%'}}>
 
                     {
-                            view?.schemaId &&
-                            Array.from(Array(schemas.get(view.schemaId)?.count).keys()).map((i) => {
-                                const schema = schemas.get(view.schemaId);
+                            schema &&
+                            Array.from(Array(schema.count).keys()).map((i) => {
                                 return <MenuItem value={i}>
                                     <SchemaItem key={i} schema={schema!} index={i}></SchemaItem>
                                 </MenuItem>

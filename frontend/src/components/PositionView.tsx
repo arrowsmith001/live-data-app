@@ -2,36 +2,36 @@
 import { useTheme } from "@mui/material";
 import { tokens } from "../styles/theme";
 import { useContext, useEffect, useState } from "react";
-import { DashboardContext } from "../data/DashboardContextProvider";
 import { DataViewTypeInputs, SchemaInfo } from "../api/model";
 import { CartesianGrid, LineChart as LC, Line, ResponsiveContainer, Scatter, ScatterChart, XAxis, YAxis, ZAxis } from "recharts";
-import { Chart} from 'chart.js';
 import { SingleStreamContext } from "../data/SingleStreamContext";
 
 
-const PoseView = () => {
+const PositionView = () => {
 
     const colors = tokens(useTheme().palette.mode);
-    const { data, inputMapping } = useContext(SingleStreamContext);
 
-    const n = data.length;
-
-    const latest = n > 0 ? { 'x': data[n-1][inputMapping[0]], 'y': data[n-1][inputMapping[1]], 'theta': data[n-1][inputMapping[2]] } : null;
-     
+    const { getLatestData, inputMapping } = useContext(SingleStreamContext);
 
     const validateArgs = () => {
         let err = '';
-        DataViewTypeInputs.pose.forEach((input, i) => {
+        const args = DataViewTypeInputs['position'];
+        for(let i = 0; i < args.length; i++) {
             if (inputMapping[i] === undefined || null) {
-                if (err === '') err = `Missing input(s): ` + input.label;
-                else err += `, ` + input.label;
+                if (err === '') err = `Missing input(s): ` + args[i].label;
+                else err += `, ` + args[i].label;
             }
-        });
+        }
         return err === '' ? null : err;
     }
 
-    const error = validateArgs();
+    const getPlotData = () => {
+        const data = getLatestData();
+        return { 'x': data[inputMapping[0]], 'y': data[inputMapping[1]]};
+    }
 
+    const error = validateArgs();
+    const data = !error ? getPlotData() : [];
 // const testData = [
 //     { 'x': 0, 'y': d[args[1]], 'theta': d[args[2]] } ]
 
@@ -45,8 +45,8 @@ const PoseView = () => {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="x" type="number" domain={[-1, 1]} name="x"  />
         <YAxis dataKey="y" type="number" domain={[-1, 1]} name="y"  />
-        <ZAxis dataKey="theta" range={[100, 100]} type="number" name="theta" />
-        <Scatter data={[latest]}  fill="white" />
+        <ZAxis />
+        <Scatter data={[data]}  fill="white" />
   
     </ScatterChart>
         </ResponsiveContainer>
@@ -168,4 +168,4 @@ const PoseView = () => {
     // );
 };
 
-export default PoseView;
+export default PositionView;

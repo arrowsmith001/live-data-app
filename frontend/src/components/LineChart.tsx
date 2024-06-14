@@ -6,18 +6,22 @@ import { DashboardContext } from "../data/DashboardContextProvider";
 import { DataViewTypeInputs, SchemaInfo } from "../api/model";
 import { LineChart as LC, Line, ResponsiveContainer, XAxis } from "recharts";
 import { Chart} from 'chart.js';
+import { DashboardEditContext } from "../data/DashboardEditContextProvider";
+import { SingleStreamContext } from "../data/SingleStreamContext";
 
 
-const LineChart = ({ connectionId, schemaId, args }: { connectionId?: number, schemaId?: number, args: any[] }) => {
+const LineChart = () => {
 
     const colors = tokens(useTheme().palette.mode);
-    const { getData } = useContext(DashboardContext);
-    const data = getData(connectionId, schemaId).map((d, i) => ({ 'x': d[args[0]], 'y': d[args[1]]})) || [];
+
+    const { data, inputMapping } = useContext(SingleStreamContext);
+
+    const plotData = inputMapping && data.map((d, i) => ({ 'x': d[inputMapping[0]], 'y': d[inputMapping[1]]})) || [];
 
     const validateArgs = () => {
         let err = '';
         DataViewTypeInputs.line.forEach((input, i) => {
-            if (args[i] === undefined || null) {
+            if (inputMapping[i] === undefined || null) {
                 if (err === '') err = `Missing input(s): ` + input.label;
                 else err += `, ` + input.label;
             }

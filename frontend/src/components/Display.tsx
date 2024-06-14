@@ -3,28 +3,21 @@ import { socket } from "../network/socket";
 import { SchemaParser } from "../data/SchemaParser";
 import { Box } from "@mui/material";
 import { DashboardContext } from "../data/DashboardContextProvider";
+import { SingleStreamContext } from "../data/SingleStreamContext";
 
-export type DataViewProps = {
-    connectionId?: number,
-    schemaId?: number,
-    args: any[][]
-}
 
-const Display = ({ connectionId, schemaId, args }: DataViewProps ) => {
+const Display = () => {
 
-    const { getData } = useContext(DashboardContext);
-
-    const data = getData(connectionId, schemaId);
-    const latest = data.length > 0 ? data[data.length - 1] : null;
+    const { getLatestData } = useContext(SingleStreamContext);
 
     return (
         <Box flex='row' width={'100%'}>
             {
-                latest && (
+               
                         <Box >
-                            {JSON.stringify(latest)}
+                            {JSON.stringify(getLatestData())}
                         </Box>
-                    )
+                    
                 
             }
         </Box>

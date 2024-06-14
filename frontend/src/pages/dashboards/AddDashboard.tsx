@@ -1,13 +1,14 @@
 import { Box, useTheme } from '@mui/material';
 import React, { useState } from 'react';
-import { DashboardContextProvider, EditingView } from '../../data/DashboardContextProvider';
+import { DashboardContextProvider } from '../../data/DashboardContextProvider';
 import { DashboardInfo } from '../../api/model';
 import { useDrop } from 'react-dnd';
-import ViewConfigurationSidebar from '../../components/ViewConfgurationSidebar';
+import ViewConfigurationSidebar from '../../components/ViewConfigurationSidebar';
 import { columnStyle, rowStyle } from '../../styles/styles';
 import { tokens } from '../../styles/theme';
 import NewDashboardEditor from '../../deprecated/NewDashboardEditor';
 import EditGrid from '../../dnd-2/EditGrid';
+import { DashboardEditContextProvider } from '../../data/DashboardEditContextProvider';
 
 const AddDashboard = () => {
 
@@ -23,19 +24,18 @@ const AddDashboard = () => {
         dashboardViews: []
     });
 
-    const [editingView, setEditingView] = useState<EditingView>({viewIndex: undefined, isEditing: false});
 
     return (
-        <DashboardContextProvider 
-        dashboard={dashboard} setDashboard={setDashboard} 
-        isEditable={true} 
-        editingView={editingView} setEditingView={setEditingView} >
-
+    
             <Box sx={{...rowStyle}}>
 
-                <Box sx={{...columnStyle}}>
+        <DashboardEditContextProvider>
+                {/* <Box sx={{...columnStyle}}>
 
-                    <Box
+                </Box> */}
+
+                   
+                <Box
                         // ref={drop}
                         sx={{
                             height: '100%',
@@ -43,16 +43,11 @@ const AddDashboard = () => {
                         }}>
                         <EditGrid/>
                     </Box>
-                </Box>
-
                 <ViewConfigurationSidebar 
-                    isCollapsed={!editingView.isEditing}
                     width={200}/>
+        </DashboardEditContextProvider > 
             </Box>
 
-
-
-        </DashboardContextProvider > 
     );
 
 };

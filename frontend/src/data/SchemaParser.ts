@@ -2,9 +2,9 @@ import { SchemaInfo, DataType } from "../api/model";
 
 
 export class SchemaParser {
-    static parse(data: any, schemaId: number) {
 
-        const schema = SchemaParser.schemas[schemaId];
+    static parseWithSchema(data: any, schema: SchemaInfo) {
+        
         const out = [];
         if(schema.format === 'json') throw new Error('JSON format not supported YET!'); // TODO: handle json format
 
@@ -22,6 +22,11 @@ export class SchemaParser {
             out.push(value);
         }
         return out;
+    }
+
+    static parse(data: any, schemaId: number) {
+        const schema = this.schemas[schemaId];
+        this.parseWithSchema(data, schema);
     }
     
 

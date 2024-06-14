@@ -6,25 +6,25 @@ import { ConnectionInfo, DashboardInfo, SchemaInfo } from '../api/model';
 import { DashboardParams } from '../pages/dashboards/Dashboards';
 import { set } from 'date-fns';
 
-interface DbContextProviderProps {
+interface DataContextProviderProps {
     children: ReactNode;
 }
 
-interface DbContextType {
+interface DataContextType {
     dashboards: Map<number | undefined, DashboardInfo>;
     connections: Map<number | undefined, ConnectionInfo>;
     schemas: Map<number | undefined, SchemaInfo>;
     getStatus: (id: number) => string;
 }
 
-export const DbContext: React.Context<DbContextType> = createContext<DbContextType>({
+export const DataContext: React.Context<DataContextType> = createContext<DataContextType>({
     dashboards: new Map(),
     connections: new Map(),
     schemas: new Map(),
     getStatus: (id: number) => "unknown"
 });
 
-export const DbContextProvider: React.FC<DbContextProviderProps> = ({ children }) => {
+export const DataContextProvider: React.FC<DataContextProviderProps> = ({ children }) => {
 
     const [dashboards, setDashboards] = useState<Map<number | undefined, DashboardInfo>>(new Map());
     const [connections, setConnections] = useState<Map<number | undefined, ConnectionInfo>>(new Map());
@@ -93,9 +93,9 @@ export const DbContextProvider: React.FC<DbContextProviderProps> = ({ children }
     }, []);
 
     return (
-        <DbContext.Provider value={{ connections, dashboards, schemas, getStatus }}>
+        <DataContext.Provider value={{ connections, dashboards, schemas, getStatus }}>
             {children}
-        </DbContext.Provider>
+        </DataContext.Provider>
     );
 };
 

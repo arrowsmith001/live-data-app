@@ -5,11 +5,8 @@ import { getSchemas } from '../api/ApiFunctions';
 import { DashboardInfo, DataViewType } from '../api/model';
 import { DashboardParams } from '../pages/dashboards/Dashboards';
 import { set } from 'date-fns';
+import { EditingView } from './DashboardEditContextProvider';
 
-export type EditingView = {
-    viewIndex?: number;
-    isEditing: boolean;
-}
 
 interface DashboardContextProviderProps {
     children: ReactNode;
@@ -52,7 +49,7 @@ export const DashboardContext: React.Context<DashboardContextType> = createConte
     setConnectionId: (cid) => {},
     setSchemaId: (sid) => {},
     setEditingView: (ev) => {},
-    editingView: {isEditing: false, viewIndex: -1},
+    editingView: {isEditing: false, id: -1},
     setViewArg: (vi, ii, sii) => {}
 });
 

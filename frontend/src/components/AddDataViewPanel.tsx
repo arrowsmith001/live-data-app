@@ -26,6 +26,7 @@ const AddDataViewPanel = ({orientation} : {orientation: 'horizontal' | 'vertical
         <AddDataViewItem type={'line'} />
         <AddDataViewItem type={'display'} />
         <AddDataViewItem type={'pose'} />
+        <AddDataViewItem type={'position'} />
         </Box>
     );
 }

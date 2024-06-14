@@ -8,7 +8,7 @@ import { useMode, ColorModeContext } from "./styles/theme";
 import Sidebar from "./app/Sidebar";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { DbContext, DbContextProvider } from "./data/DbContextProvider";
+import { DataContext, DataContextProvider } from "./data/DataContextProvider";
 import Connections from "./pages/Connections";
 import AddDashboard from "./pages/dashboards/AddDashboard";
 import BrowseDashboards from "./pages/dashboards/BrowseDashboards";
@@ -27,7 +27,7 @@ function App() {
       <ThemeProvider theme={theme as Theme}>
         <DndProvider backend={HTML5Backend}>
         <CssBaseline />
-        <DbContextProvider>
+        <DataContextProvider>
           <BrowserRouter>
             <Box sx={{width: '100%', height:'100%', flexDirection: 'row', display: 'flex'}}>
               <Sidebar width={sidebarWidth} />
@@ -56,7 +56,7 @@ function App() {
             </Box>
 {/* <Sidebar width={sidebarWidth} /> */}
           </BrowserRouter>
-          </DbContextProvider>
+          </DataContextProvider>
           </DndProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
