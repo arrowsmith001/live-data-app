@@ -8,7 +8,7 @@ import { DataType } from "../deprecated/DataReader";
 import { useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { JsxElement } from "typescript";
-import LineChart from "./LineChart";
+import LineChart from "./dataview/LineChart";
 import LineChartPreview from "./LineChartPreview";
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -39,7 +39,7 @@ const AddDataViewItem = ({type} : {type: DataViewType}) => {
 
     const componentPreviewMap = {
         'line': <Card sx={{height: '100px', width: '100px', padding: 1, margin: 0, borderRadius: 4, backgroundColor: colors.primary[300]}}>
-            <LineChartPreview />
+            {/* <LineChartPreview /> */}Line
         </Card>,
         'display': <Card sx={{height: '100px', width: '100px', padding: 1, margin: 0, borderRadius: 4, backgroundColor: colors.primary[300]}}>Display</Card>,
         'pose': <Card sx={{height: '100px', width: '100px', padding: 1, margin: 0, borderRadius: 4, backgroundColor: colors.primary[300]}}>Pose</Card>,

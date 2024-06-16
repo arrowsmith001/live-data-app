@@ -58,3 +58,8 @@ export const DataViewTypeInputs = {
     ['position']: [{ label: 'x', type: 'float', optional: false }, { label: 'y', type: 'float', optional: false }],
     ['pose']: [{ label: 'x', type: 'float', optional: false }, { label: 'y', type: 'float', optional: false }, { label: 'theta', type: 'float', optional: false }]
 }
+
+export type Error = {
+    errorType: string,
+    message: string
+}

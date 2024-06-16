@@ -2,6 +2,6 @@
 export type Stream = {
     connectionId: number;
     schemaId: number;
-    data: any[];
+    data?: any[];
     error?: string;
 };

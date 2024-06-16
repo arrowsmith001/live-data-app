@@ -1,5 +1,5 @@
 import { socket } from "../network/socket";
-import { SchemaParser } from "./SchemaParser";
+import { SchemaParser } from "../data/SchemaParser";
 
 type Callback = (data: any) => void;
 

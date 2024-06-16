@@ -178,7 +178,8 @@ export const DashboardContextProvider: React.FC<DashboardContextProviderProps> =
             for (const schemaId of dataCombos.get(connectionId)!) {
                 // console.log('subscribing to connection-' + connectionId + ' schema-' + schemaId);
                 socket.on('connection-' + connectionId, (data) => {
-try{
+                
+                    try{
 
                     // console.log('DATA: ' + connectionId + ' - ' + schemaId);
                     const decoded = SchemaParser.parse(data, schemaId);

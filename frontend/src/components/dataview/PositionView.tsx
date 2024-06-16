@@ -1,55 +1,58 @@
 
-import { useTheme } from "@mui/material";
-import { tokens } from "../styles/theme";
+import { Box, Typography, useTheme } from "@mui/material";
+import { tokens } from "../../styles/theme";
 import { useContext, useEffect, useState } from "react";
-import { DashboardContext } from "../data/DashboardContextProvider";
-import { DataViewTypeInputs, SchemaInfo } from "../api/model";
 import { CartesianGrid, LineChart as LC, Line, ResponsiveContainer, Scatter, ScatterChart, XAxis, YAxis, ZAxis } from "recharts";
-import { Chart} from 'chart.js';
-import { SingleStreamContext } from "../data/SingleStreamContext";
+import { DataContext } from "../../data/DataContextProvider";
+import { DataStreamContext } from "../../data/DataStreamContext";
+import { DataViewContext } from "../../data/DataViewContext";
 
 
-const PoseView = () => {
+const PositionView = () => {
 
     const colors = tokens(useTheme().palette.mode);
-    const { data, inputMapping } = useContext(SingleStreamContext);
 
-    const n = data.length;
+    const {schemas} = useContext(DataContext);
+    const { getLatestData } = useContext(DataStreamContext);
+    
+    const { view } = useContext(DataViewContext);
 
-    const latest = n > 0 ? { 'x': data[n-1][inputMapping[0]], 'y': data[n-1][inputMapping[1]], 'theta': data[n-1][inputMapping[2]] } : null;
-     
+    const inputMapping = view?.config.inputMapping ?? {};
+    const connectionId = view?.config.connectionId;
 
-    const validateArgs = () => {
-        let err = '';
-        DataViewTypeInputs.pose.forEach((input, i) => {
-            if (inputMapping[i] === undefined || null) {
-                if (err === '') err = `Missing input(s): ` + input.label;
-                else err += `, ` + input.label;
-            }
-        });
-        return err === '' ? null : err;
+    const schemaId = view?.config.schemaId;
+    const schema = schemas.get(schemaId);
+
+
+    const getPlotData = () => {
+        const data = getLatestData(connectionId, schemaId);
+        return data ? { 'x': data[inputMapping[0]], 'y': data[inputMapping[1]]} : null;
     }
 
-    const error = validateArgs();
+    const data = getPlotData();
 
+    
+    const xLabel = schema ? schema.labels[inputMapping[0]] : '-';
+    const yLabel = schema ? schema.labels[inputMapping[1]] : '-';
 // const testData = [
 //     { 'x': 0, 'y': d[args[1]], 'theta': d[args[2]] } ]
 
 
 
     return (
-        error ? <div>{error}</div> :
-
+        <Box p={2} width="100%" height="100%">
+        <Typography maxWidth={'100%'} p={1} sx={{backgroundColor: undefined}} variant="h5" fontWeight={800} color="textPrimary">{xLabel}-{yLabel} plot</Typography>
       <ResponsiveContainer width="100%" height="100%">
       <ScatterChart >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="x" type="number" domain={[-1, 1]} name="x"  />
-        <YAxis dataKey="y" type="number" domain={[-1, 1]} name="y"  />
-        <ZAxis dataKey="theta" range={[100, 100]} type="number" name="theta" />
-        <Scatter data={[latest]}  fill="white" />
+      <XAxis label={xLabel} name={xLabel} dataKey="x" type="number" domain={[-1, 1]}  />
+        <YAxis label={yLabel} name={yLabel} dataKey="y" type="number" domain={[-1, 1]}   />
+        <ZAxis />
+        <Scatter data={[data]}  fill="white" />
   
     </ScatterChart>
         </ResponsiveContainer>
+        </Box>
     );
 
 
@@ -168,4 +171,4 @@ const PoseView = () => {
     // );
 };
 
-export default PoseView;
+export default PositionView;

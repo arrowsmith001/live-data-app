@@ -20,6 +20,18 @@ export const columnStyle : SxProps = {
     width: '100%'
 }
 
+export const centeredStyle : SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyItems: 'center',
+    justifyContent: 'center',
+
+    height: '100%',
+    width: '100%'
+}
+
+
 
 export const useColors = () => {
     return tokens(useTheme().palette.mode);

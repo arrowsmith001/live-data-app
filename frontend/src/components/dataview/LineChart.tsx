@@ -1,47 +1,55 @@
 
-import { useTheme } from "@mui/material";
-import { tokens } from "../styles/theme";
+import { Box, Typography, useTheme } from "@mui/material";
+import { tokens } from "../../styles/theme";
 import { useContext, useEffect, useState } from "react";
-import { DashboardContext } from "../data/DashboardContextProvider";
-import { DataViewTypeInputs, SchemaInfo } from "../api/model";
-import { LineChart as LC, Line, ResponsiveContainer, XAxis } from "recharts";
-import { Chart} from 'chart.js';
-import { DashboardEditContext } from "../data/DashboardEditContextProvider";
-import { SingleStreamContext } from "../data/SingleStreamContext";
+import { DashboardContext } from "../../data/DashboardContextProvider";
+import { DataViewTypeInputs, Error, SchemaInfo } from "../../api/model";
+import { LineChart as RechartLineChart, Line, ResponsiveContainer, XAxis, Legend } from "recharts";
+import { Chart } from 'chart.js';
+import { DashboardEditContext } from "../../data/DashboardEditContextProvider";
+import { SingleStreamContext } from "../../data/SingleStreamContext";
+import { getDataConfigError, validateArgMapping } from "../../utils/utils";
+import { DataViewError } from "./DataViewError";
+import { DataViewProps } from "./DataView";
+import { DataStreamContext } from "../../data/DataStreamContext";
+import { DataViewContext } from "../../data/DataViewContext";
+import { DataContext } from "../../data/DataContextProvider";
 
 
-const LineChart = () => {
+
+const LineChart = ({error } : {error? : Error}) => {
 
     const colors = tokens(useTheme().palette.mode);
 
-    const { data, inputMapping } = useContext(SingleStreamContext);
+    const {schemas} = useContext(DataContext);
 
-    const plotData = inputMapping && data.map((d, i) => ({ 'x': d[inputMapping[0]], 'y': d[inputMapping[1]]})) || [];
+    const { getData, getLatestData } = useContext(DataStreamContext);
+    const { view } = useContext(DataViewContext);
 
-    const validateArgs = () => {
-        let err = '';
-        DataViewTypeInputs.line.forEach((input, i) => {
-            if (inputMapping[i] === undefined || null) {
-                if (err === '') err = `Missing input(s): ` + input.label;
-                else err += `, ` + input.label;
-            }
-        });
-        return err === '' ? null : err;
-    }
+    const inputMapping = view?.config.inputMapping ?? {};
+    const connectionId = view?.config.connectionId;
 
-    const error = validateArgs();
+    const schemaId = view?.config.schemaId;
+    const schema = schemas.get(schemaId);
 
+    const plotData = getData(connectionId, schemaId).map((d, i) => ({ 'x': d[inputMapping[0]], 'y': d[inputMapping[1]] }));
+
+    const xLabel = schema ? schema.labels[inputMapping[0]] : '-';
+    const yLabel = schema ? schema.labels[inputMapping[1]] : '-';
 
     return (
-        error ? <div>{error}</div> :
+        <Box p={2} width="100%" height="100%">
+<Typography maxWidth={'100%'} p={1} sx={{backgroundColor: undefined}} variant="h5" fontWeight={800} color="textPrimary">{yLabel} against {xLabel}</Typography>
+<ResponsiveContainer style={{paddingBottom: 16}} width="100%" height="100%">
+                <RechartLineChart style={{padding: 8}} data={plotData}>
 
-      <ResponsiveContainer width="100%" height="100%">
-      <LC data={data}>
-
-        <XAxis dataKey="x" />
-      <Line  type="step" dataKey="y" stroke="#8884d8" />
-    </LC>
-        </ResponsiveContainer>
+                    <XAxis dataKey="x" label={xLabel} />
+                    <Line type="step" dataKey="y" name={yLabel} label={yLabel} stroke="#8884d8" />
+                    <Legend align='right' />
+                    
+                </RechartLineChart>
+            </ResponsiveContainer>
+        </Box>
     );
 
 

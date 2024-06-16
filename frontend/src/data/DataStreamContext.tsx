@@ -9,7 +9,6 @@ import { Stream } from './model';
 interface DataStreamContextProviderProps {
     children: ReactNode;
     streams: Stream[];
-    setStreams: React.Dispatch<React.SetStateAction<Stream[]>>;
 }
 
 interface DataStreamContextType {
@@ -22,62 +21,81 @@ export const DataStreamContext: React.Context<DataStreamContextType> = createCon
     getLatestData: (connectionId?: number, schemaId?: number) => null
 });
 
-export const DataStreamContextProvider: React.FC<DataStreamContextProviderProps> = ({ children, streams, setStreams }) => {
+export const DataStreamContextProvider: React.FC<DataStreamContextProviderProps> = ({ children, streams } : DataStreamContextProviderProps) => {
 
     const { schemas } = useContext(DataContext);
 
+      // Initialize the state with an empty map
+    const [streamMap, setStreamMap] = useState(new Map<number, number[]>());
+    const [streamData, setStreamData] = useState(new Map<string, any[]>()); 
 
-    const dataStreamMap = useMemo(() => {
 
-        const out = new Map<number, Map<number, any[]>>();
+    useEffect(() => {
 
-        const cids = Array.from(new Set(streams.map((s) => s.connectionId)));
-        for(const cid of cids) {
-            const sids = Array.from(new Set(streams.filter((s) => s.connectionId === cid).map((s) => s.schemaId)));
-            for(const sid of sids) {
-                const stream = streams.filter((s) => s.connectionId === cid && s.schemaId === sid)[0];
-                if(out.has(cid)) {
-                    const data = out.get(cid);
-                    data?.set(sid, stream.data);
-                }
-                else out.set(cid, new Map([[sid, []]]));
-            }
+
+        const uniqueCids = Array.from(new Set(streams.map((s) => s.connectionId)));
+
+        const newStreamMap = new Map<number, number[]>();
+
+        for(const cid of uniqueCids) {
+            newStreamMap.set(cid, streams
+                .filter((s) => s.connectionId === cid && s.connectionId !== -1)
+                .map((s) => s.schemaId)
+                .filter((s) => schemas.has(s)));
         }
 
-        return out;
-      }, [streams]);
+
+        for(const cid of uniqueCids) {
 
 
-      useEffect(() => {
+                socket.on('connection-' + cid, (msg) => {
 
-        //   if(!dataStreamMap) return;
-          
-        //     for(const cid of Object.keys(dataStreamMap).map((s) => parseInt(s))) {
-        //         const sids = dataStreamMap!.get(cid).map((s) => parseInt(s));   
-        //         for(const sid of sids) {
-        //             const data = dataStreamMap[cid][sid];
-        //             const stream = streams.filter((s) => s.connectionId === cid && s.schemaId === sid)[0];
-        //             if(stream) {
-        //                 setStreams((prevData) => {
-        //                     const newStream = { ...stream, data: data };
-        //                     return [...prevData.filter((s) => s.connectionId !== cid || s.schemaId !== sid), newStream];
-        //                 });
-        //             }
-        //         }
-        //     }
+                    
+                for(const sid of newStreamMap.get(cid) || []) {
+    
+                    const schema = schemas.get(sid); // TODO: Error handling if no schema found
+                    if(!schema) {
+                        console.error('No schema found for schemaId ' + sid);
+                        continue;
+                    }
+                    
+                    const datum = SchemaParser.parseWithSchema(msg, schema);
+    
+                    const key = cid + '-' + sid;
+    
+                    setStreamData((prevData) => {
+                        // append datum to appropriate map element
+                        const newData = new Map(prevData);
+                        const prevDataArray = prevData.get(key) || [];
+                        newData.set(key, [...prevDataArray, datum].slice(-100));
+                        return newData;
+                    });
+                }
+                });
+            
+        }
 
-        // return () => {
-        //   // Unsubscribe from each connection ID
-        //   for (const ws of webSocketMap.values()) {
-        //     ws.close();
-        //   }
-        // };
-      }, [dataStreamMap]); 
+        socket.on('connections_changed', (data) => {
+            console.log('connections_changed!');
+        });
+
+        setStreamMap(newStreamMap);
+
+
+        return () => {
+            for (const cid of uniqueCids) {
+                socket.off('connection-' + cid);
+            }
+        }
+    }, [streams, schemas]);
+
+
 
 
     const getData = (connectionId?: number, schemaId?: number) => {
         if(connectionId === undefined || schemaId === undefined) return [];
-        return streams.filter((s) => s.connectionId === connectionId && s.schemaId === schemaId)[0]?.data || [];
+        const key = connectionId + '-' + schemaId;
+        return streamData.get(key) || [];
     };
 
     const getLatestData = (connectionId?: number, schemaId?: number) => {
@@ -85,66 +103,6 @@ export const DataStreamContextProvider: React.FC<DataStreamContextProviderProps>
         if(data.length === 0) return null;
         return data[data.length - 1];
     };
-
-    useEffect(() => {
-
-        getSchemas().then((schemas) => {
-            for (const schema of schemas) {
-                SchemaParser.addSchema(schema);
-            }
-        });
-
-        const connectionIds = Array.from(new Set(streams.map((s) => s.connectionId)));
-
-        // iterate through keys and subscribe to connectionIds
-        for (const connectionId of connectionIds) {
-
-            const streamIds = Array.from(new Set(streams.filter((s) => s.connectionId === connectionId).map((s) => s.schemaId)));
-
-            for (const schemaId of streamIds) {
-
-                socket.on('connection-' + connectionId, (data) => {
-
-                    try{
-                        const decoded = SchemaParser.parse(data, schemaId);
-
-                        setStreams((prevData) => {
-                            const stream = streams.filter((s) => s.connectionId === connectionId && s.schemaId === schemaId)[0];
-                            const data = stream.data;
-                            const newData = [...data, decoded].slice(-100);
-
-                            const newStream = { ...stream, data: newData };
-                            //console.log(d);
-                            return [...prevData.filter((s) => s.connectionId !== connectionId || s.schemaId !== schemaId), newStream];
-                        });
-                    }
-                    catch(e: any) {
-                        setStreams((prevData) => {
-                            const stream = streams.filter((s) => s.connectionId === connectionId && s.schemaId === schemaId)[0];
-                            const newStream = { ...stream, error: e.message };
-                            //console.log(d);
-                            return [...prevData.filter((s) => s.connectionId !== connectionId || s.schemaId !== schemaId), newStream];
-                        });
-                    }
-
-
-
-                });
-            }
-        }
-
-        socket.on('connections_changed', (data) => {
-            console.log('connections_changed!');
-        });
-
-        // Clean up the effect
-        return () => {
-            const connectionIds = Array.from(new Set(streams.map((s) => s.connectionId)));
-            for (const connectionId of connectionIds) {
-                socket.off('connection-' + connectionId);
-            }
-        };
-    }, [setStreams, streams]);
 
     return (
         <DataStreamContext.Provider value={{ 
